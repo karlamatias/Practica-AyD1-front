@@ -1,22 +1,26 @@
+import { useState } from "react";
 import { authService } from "../services/authService";
 
 export const useAuth = () => {
+  const [loading, setLoading] = useState(false);
+
   // Login inicial: usuario + contraseña
   const login = async (username: string, password: string) => {
     const res = await authService.login(username, password);
-
-    // De momento no hay backend OTP, solo devolvemos el token
     return res; // { token, role }
   };
 
-  // Verificación del código OTP (simulada)
-  const verifyCode = async (code: string) => {
-    // Aquí solo simulamos que OTP siempre es correcto
-    if (code !== "0000") {
-      throw new Error("Código inválido");
+  // Verificación del código
+  const verifyCode = async (email: string, code: string) => {
+    setLoading(true);
+    try {
+      const res = await authService.verifyCode(email, code);
+      return res; // { token }
+    } catch (error: any) {
+      throw error;
+    } finally {
+      setLoading(false);
     }
-    // Devolver token fake
-    return { token: "fake-jwt", role: "admin" };
   };
 
   // Recuperación de contraseña
@@ -24,5 +28,5 @@ export const useAuth = () => {
     return await authService.recoverPassword(email);
   };
 
-  return { login, verifyCode, recoverPassword };
+  return { login, verifyCode, recoverPassword, loading };
 };

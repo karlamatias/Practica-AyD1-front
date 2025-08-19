@@ -23,18 +23,14 @@ export default function LoginForm() {
     try {
       if (step === "login") {
         const res = await login(username, password);
+        setStep("verify");
 
-        if (username === "admin") {
-          setStep("verify");
-        } else {
-          localStorage.setItem("token", res.token);
-          navigate("/dashboard");
-        }
       } else if (step === "verify") {
-        const res = await verifyCode(code);
+        const res = await verifyCode(username, code);
         localStorage.setItem("token", res.token);
-        navigate("/dashboard");
+        navigate("/admin");
       }
+
     } catch (err: any) {
       setError(err.message);
     }
@@ -46,7 +42,9 @@ export default function LoginForm() {
         Bienvenido
       </h1>
       <p className="text-sm text-gray-500 text-center mb-4">
-        Ingresa tus credenciales para continuar
+        {step === "login"
+          ? "Ingresa tus credenciales para continuar"
+          : "Ingresa el código de verificación que enviamos a tu correo"}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
