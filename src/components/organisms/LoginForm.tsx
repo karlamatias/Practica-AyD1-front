@@ -28,7 +28,7 @@ export default function LoginForm() {
       } else if (step === "verify") {
         const res = await verifyCode(username, code);
         localStorage.setItem("token", res.token);
-        navigate("/admin");
+        navigate("/dashboard/admin");
       }
 
     } catch (err: any) {
