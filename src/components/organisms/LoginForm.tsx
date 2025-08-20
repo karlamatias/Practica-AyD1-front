@@ -5,6 +5,7 @@ import FormGroup from "../molecules/FormGroup";
 import LinkText from "../atoms/LinkText";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { roleRoutes, type UserRoleId } from "../../constants/roles";
 
 export default function LoginForm() {
   const { login, verifyCode } = useAuth();
@@ -26,11 +27,12 @@ export default function LoginForm() {
         setStep("verify");
 
       } else if (step === "verify") {
-        const res = await verifyCode(username, code);
-        localStorage.setItem("token", res.token);
-        navigate("/admin");
-      }
+        const userData = await verifyCode(username, code);
 
+        // Redirección según id de rol
+        const roleId: UserRoleId = userData.role.id as UserRoleId;
+        navigate(roleRoutes[roleId] || "/");
+      }
     } catch (err: any) {
       setError(err.message);
     }

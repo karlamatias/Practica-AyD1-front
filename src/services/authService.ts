@@ -1,57 +1,62 @@
 const API_URL = import.meta.env.VITE_API_URL;
+export interface CreateUserDTO {
+  firstname: string;
+  lastname: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  roleId: number;
+}
 
+// Servicio de autenticación
 export const authService = {
+  // Paso 1: login (solo valida credenciales)
   login: async (email: string, password: string) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Usuario o contraseña incorrectos");
-      }
-
-
-      return { token: "fake-jwt", role: "user" }; // temporal o reemplazar con JWT real
-    } catch (error: any) {
-      throw new Error(error.message || "Error en el login");
+    if (!res.ok) {
+      throw new Error("Usuario o contraseña incorrectos");
     }
+    const data = await res.json();
+    return data;
   },
 
+  // Paso 2: verificar código 2FA y guardar token
   verifyCode: async (email: string, code: string) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/verify-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
-      });
+    const res = await fetch(`${API_URL}/auth/verify-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Código inválido o expirado");
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error: any) {
-      throw new Error(error.message || "Error al verificar código");
+    if (!res.ok) {
+      throw new Error("Código inválido o expirado");
     }
+
+    // Captura token desde header Authorization
+    const authHeader = res.headers.get("Authorization");
+    if (!authHeader) throw new Error("No se recibió token del backend");
+
+    const token = authHeader.replace("Bearer ", "");
+    localStorage.setItem("token", token);
+
+    const userData = await res.json();
+    return userData;
   },
 
   recoverPassword: async (email: string) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/recover-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+    const res = await fetch(`${API_URL}/auth/recover-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
 
-      if (!response.ok) throw new Error("No se pudo enviar el correo de recuperación");
+    if (!res.ok) throw new Error("No se pudo enviar el correo de recuperación");
 
-      return true;
-    } catch (error: any) {
-      throw new Error(error.message || "Error al recuperar contraseña");
-    }
+    return true;
   },
 };
