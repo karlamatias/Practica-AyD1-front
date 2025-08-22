@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { UserRoleId } from "../../../constants/roles";
-import { UserService, type CreateUserDTO } from "../../../services/userService";
+import { UserService } from "../../../services/userService";
 import Button from "../../atoms/Button";
 import InputText from "../../atoms/InputText";
 import Alert from "../../atoms/Alert";
@@ -8,23 +8,8 @@ import AdminLayout from "../../templates/AdminLayout";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import ConfirmModal from "../../molecules/ConfirmModal";
 import { FaPlus, FaSave } from "react-icons/fa";
+import type { CreateUserDTO, User } from "../../../types/user";
 
-interface Role {
-    id: number;
-    name: string;
-    description?: string;
-}
-
-interface User {
-    id: number;
-    firstname: string;
-    lastname: string;
-    email: string;
-    phoneNumber: string;
-    password?: string;
-    roleId?: number;
-    role?: Role;
-}
 
 export default function AdminUsers() {
     const [users, setUsers] = useState<User[]>([]);
@@ -40,6 +25,17 @@ export default function AdminUsers() {
     const [hasChanges, setHasChanges] = useState(false);
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+    // Validación de formulario
+    const validateForm = (form: Omit<User, "id">, isEditing: boolean): string | null => {
+        if (!form.firstname) return "El campo Nombre es obligatorio.";
+        if (!form.lastname) return "El campo Apellido es obligatorio.";
+        if (!form.email) return "El campo Email es obligatorio.";
+        if (!form.phoneNumber) return "El campo Teléfono es obligatorio.";
+        if (!form.password && !isEditing) return "El campo Contraseña es obligatorio para un nuevo usuario.";
+        if (!form.roleId) return "El campo Rol es obligatorio.";
+        return null;
+    };
 
     // Cargar usuarios
     useEffect(() => {
@@ -58,91 +54,44 @@ export default function AdminUsers() {
     // Detecta cambios al editar
     useEffect(() => {
         if (editingId !== null) {
-            const original = users.find((u) => u.id === editingId);
-            setHasChanges(
-                original?.firstname !== form.firstname ||
-                original?.lastname !== form.lastname ||
-                original?.email !== form.email ||
-                original?.phoneNumber !== form.phoneNumber ||
-                original?.password !== form.password ||
-                original?.roleId !== form.roleId
-            );
+            const original = users.find(u => u.id === editingId);
+            setHasChanges(original ? JSON.stringify(original) !== JSON.stringify(form) : false);
         }
     }, [form, editingId, users]);
 
+    // Crear o actualizar usuario
     const handleAddOrUpdateUser = async () => {
-        // Validar campos requeridos y mostrar alerta específica
-        if (!form.firstname) {
-            setAlert({ type: "error", message: "El campo Nombre es obligatorio." });
-            return;
-        }
-        if (!form.lastname) {
-            setAlert({ type: "error", message: "El campo Apellido es obligatorio." });
-            return;
-        }
-        if (!form.email) {
-            setAlert({ type: "error", message: "El campo Email es obligatorio." });
-            return;
-        }
-        if (!form.phoneNumber) {
-            setAlert({ type: "error", message: "El campo Teléfono es obligatorio." });
-            return;
-        }
-        if (!form.password && editingId === null) {
-            setAlert({ type: "error", message: "El campo Contraseña es obligatorio para un nuevo usuario." });
-            return;
-        }
-        if (!form.roleId) {
-            setAlert({ type: "error", message: "El campo Rol es obligatorio." });
+        const errorMsg = validateForm(form, editingId !== null);
+        if (errorMsg) {
+            setAlert({ type: "error", message: errorMsg });
             return;
         }
 
         try {
+            let user: User;
+
             if (editingId !== null) {
-                const payload: any = {
-                    firstname: form.firstname,
-                    lastname: form.lastname,
-                    email: form.email,
-                    phoneNumber: form.phoneNumber,
-                    roleId: form.roleId,
-                };
-                if (form.password) payload.password = form.password;
-
-                // Llamada al backend
-                const updatedUser = await UserService.update(editingId, payload);
-
-                // Actualizar tabla solo con la respuesta real
-                setUsers(users.map(u =>
-                    u.id === editingId ? updatedUser : u
-                ));
-
-                setAlert({ type: "success", message: `Usuario "${updatedUser.firstname} ${updatedUser.lastname}" actualizado correctamente.` });
+                // Editar usuario
+                const payload = { ...form };
+                if (!payload.password) delete payload.password; // No enviar password vacío
+                user = await UserService.update(editingId, payload);
+                setUsers(users.map(u => u.id === editingId ? user : u));
+                setAlert({ type: "success", message: `Usuario "${user.firstname} ${user.lastname}" actualizado correctamente.` });
                 setEditingId(null);
             } else {
-                // Crear nuevo usuario
-                const newUser: CreateUserDTO = {
-                    firstname: form.firstname,
-                    lastname: form.lastname,
-                    email: form.email,
-                    phoneNumber: form.phoneNumber,
-                    password: form.password!,
-                    roleId: form.roleId,
-                };
-                const createdUser = await UserService.create(newUser);
-
-                setUsers([...users, createdUser]);
-                setAlert({ type: "success", message: `Usuario "${createdUser.firstname} ${createdUser.lastname}" creado correctamente.` });
+                // Crear usuario
+                user = await UserService.create(form as CreateUserDTO);
+                setUsers([...users, user]);
+                setAlert({ type: "success", message: `Usuario "${user.firstname} ${user.lastname}" creado correctamente.` });
             }
         } catch (error: any) {
-            console.error(error);
             setAlert({ type: "error", message: error.message || "Ocurrió un error." });
+        } finally {
+            // Reset form
+            setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE });
+            setHasChanges(false);
         }
-
-
-        setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE });
-        setHasChanges(false);
     };
-
 
     const handleDeleteUser = async () => {
         if (confirmDeleteId === null) return;
@@ -158,6 +107,7 @@ export default function AdminUsers() {
     };
 
 
+    // Cargar datos en el formulario para editar
     const handleEditClick = (user: User) => {
         setEditingId(user.id);
         setForm({
@@ -166,10 +116,31 @@ export default function AdminUsers() {
             email: user.email,
             phoneNumber: user.phoneNumber,
             password: "",
-            roleId: user.roleId || UserRoleId.EMPLOYEE,
+            roleId: user.role?.id || UserRoleId.EMPLOYEE,
         });
     };
 
+
+    // Función para limpiar formulario
+    const resetForm = () => {
+        setForm({
+            firstname: "",
+            lastname: "",
+            email: "",
+            phoneNumber: "",
+            password: "",
+            roleId: UserRoleId.EMPLOYEE,
+        });
+        setEditingId(null);
+        setHasChanges(false);
+    };
+
+    // Al mostrar la alerta, la cerramos automáticamente
+    useEffect(() => {
+        if (!alert) return;
+        const timer = setTimeout(() => setAlert(null), 2000);
+        return () => clearTimeout(timer);
+    }, [alert]);
     return (
         <AdminLayout>
             <h2 className="text-2xl font-bold mb-4">Usuarios</h2>
@@ -216,6 +187,15 @@ export default function AdminUsers() {
                     {editingId !== null ? <FaSave /> : <FaPlus />}
                     {editingId !== null ? "Actualizar" : "Agregar"}
                 </Button>
+
+                {editingId !== null && (
+                    <Button
+                        onClick={resetForm}
+                        className="flex items-center gap-2 px-5 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-black font-semibold shadow-md transition-all duration-200"
+                    >
+                        Cancelar
+                    </Button>
+                )}
             </div>
 
             {/* LISTA DE USUARIOS */}
@@ -240,7 +220,7 @@ export default function AdminUsers() {
                                     <td className="px-4 py-2 text-sm text-gray-700">{user.lastname}</td>
                                     <td className="px-4 py-2 text-sm text-gray-700">{user.email}</td>
                                     <td className="px-4 py-2 text-sm text-gray-700">{user.phoneNumber}</td>
-                                    <td className="px-4 py-2 text-sm text-gray-700">{user.role?.name || "Empleado"}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-700">{user.role?.description || "Empleado"}</td>
                                     <td className="px-4 py-2 text-center flex justify-center gap-2">
                                         <button
                                             onClick={() => handleEditClick(user)}

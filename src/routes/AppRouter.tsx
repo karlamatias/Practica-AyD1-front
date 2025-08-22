@@ -7,6 +7,7 @@ import AdminReports from "../components/pages/admin/AdminReports";
 import AdminUsers from "../components/pages/admin/AdminUsers";
 import AdminVehicles from "../components/pages/admin/AdminVehicles";
 import AdminWorks from "../components/pages/admin/AdminWorks";
+import EmployeeDashboard from "../components/pages/employee/EmployeeDashboard";
 
 
 export default function AppRouter() {
@@ -21,6 +22,8 @@ export default function AppRouter() {
         <Route path="/dashboard/admin/inventory" element={<AdminInventory />} />
         <Route path="/dashboard/admin/works" element={<AdminWorks />} />
         <Route path="/dashboard/admin/reports" element={<AdminReports />} />
+
+        <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
 
       </Routes>
     </Router>

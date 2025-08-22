@@ -3,22 +3,45 @@ import { useState } from "react";
 import { HiChartBar, HiCube, HiHome, HiMenu, HiTruck, HiUsers, HiX } from "react-icons/hi";
 import { HiWrench } from "react-icons/hi2";
 
-export default function Sidebar() {
+interface SidebarProps {
+    role: "Admin" | "Empleado" | "Especialista" | "Cliente" | "Proveedor";
+}
+
+export default function Sidebar({ role }: SidebarProps) {
     const [isOpen, setIsOpen] = useState(true);
 
-    const links = [
-        { name: "Dashboard", path: "/dashboard/admin", icon: <HiHome /> },
-        { name: "Vehículos", path: "/dashboard/admin/vehicles", icon: <HiTruck /> },
-        { name: "Usuarios", path: "/dashboard/admin/users", icon: <HiUsers /> },
-        { name: "Inventario", path: "/dashboard/admin/inventory", icon: <HiCube /> },
-        { name: "Trabajos", path: "/dashboard/admin/works", icon: <HiWrench /> },
-        { name: "Reportes", path: "/dashboard/admin/reports", icon: <HiChartBar /> },
-    ];
+    // Links por rol
+    const allLinks = {
+        Admin: [
+            { name: "Dashboard", path: "/dashboard/admin", icon: <HiHome /> },
+            { name: "Vehículos", path: "/dashboard/admin/vehicles", icon: <HiTruck /> },
+            { name: "Usuarios", path: "/dashboard/admin/users", icon: <HiUsers /> },
+            { name: "Inventario", path: "/dashboard/admin/inventory", icon: <HiCube /> },
+            { name: "Trabajos", path: "/dashboard/admin/works", icon: <HiWrench /> },
+            { name: "Reportes", path: "/dashboard/admin/reports", icon: <HiChartBar /> },
+        ],
+        Empleado: [
+            { name: "Dashboard", path: "/dashboard/employee", icon: <HiHome /> },
+        ],
+        Especialista: [
+            { name: "Dashboard", path: "/dashboard/specialist", icon: <HiHome /> },
+            { name: "Trabajos", path: "/dashboard/specialist/works", icon: <HiWrench /> },
+        ],
+        Cliente: [
+            { name: "Dashboard", path: "/dashboard/customer", icon: <HiHome /> },
+            { name: "Servicios", path: "/dashboard/customer/services", icon: <HiWrench /> },
+        ],
+        Proveedor: [
+            { name: "Dashboard", path: "/dashboard/supplier", icon: <HiHome /> },
+            { name: "Inventario", path: "/dashboard/supplier/inventory", icon: <HiCube /> },
+        ],
+    };
+
+    const links = allLinks[role];
 
     return (
         <aside
-            className={`bg-white shadow-lg p-4 flex flex-col transition-all duration-300 ${isOpen ? "w-64" : "w-16"
-                }`}
+            className={`bg-white shadow-lg p-4 flex flex-col transition-all duration-300 ${isOpen ? "w-64" : "w-16"}`}
         >
             {/* Botón hamburguesa */}
             <button
@@ -29,7 +52,7 @@ export default function Sidebar() {
             </button>
 
             {/* Logo / Título */}
-            {isOpen && <h2 className="text-xl font-bold mb-6">Taller Admin</h2>}
+            {isOpen && <h2 className="text-xl font-bold mb-6">Taller {role}</h2>}
 
             <nav className="flex flex-col space-y-2">
                 {links.map((link) => (
@@ -46,7 +69,6 @@ export default function Sidebar() {
                     </NavLink>
                 ))}
             </nav>
-
         </aside>
     );
 }
