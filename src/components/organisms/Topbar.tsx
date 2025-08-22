@@ -1,11 +1,17 @@
 import { HiLogout } from "react-icons/hi";
 
-export default function Topbar() {
+interface TopbarProps {
+  title?: string; // Opcional, si no se pasa se puede mostrar un valor por defecto
+}
+
+export default function Topbar({ title }: TopbarProps) {
+  const displayTitle = title || "Panel de Control";
+
   return (
     <header className="bg-white shadow px-6 py-4 flex justify-between items-center">
-      <h1 className="text-lg font-bold">Panel de Administrador</h1>
+      <h1 className="text-lg font-bold">{displayTitle}</h1>
       <button
-        className="flex items-center bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+        className="flex items-center bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors duration-200"
         onClick={() => {
           localStorage.removeItem("token");
           window.location.href = "/";
