@@ -1,12 +1,4 @@
 const API_URL = import.meta.env.VITE_API_URL;
-export interface CreateUserDTO {
-  firstname: string;
-  lastname: string;
-  email: string;
-  phoneNumber: string;
-  password: string;
-  roleId: number;
-}
 
 // Servicio de autenticación
 export const authService = {

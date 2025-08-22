@@ -1,19 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const adminService = {
-  // Vehículos
-  getVehicles: async () => {
-    const res = await fetch(`${API_URL}/vehicles`);
-    return res.json();
-  },
-  createVehicle: async (data: any) => {
-    const res = await fetch(`${API_URL}/vehicles`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
+
 
   // Clientes
   getClients: async () => {
