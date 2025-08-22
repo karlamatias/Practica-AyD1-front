@@ -8,6 +8,7 @@ import AdminUsers from "../components/pages/admin/AdminUsers";
 import AdminVehicles from "../components/pages/admin/AdminVehicles";
 import AdminWorks from "../components/pages/admin/AdminWorks";
 import EmployeeDashboard from "../components/pages/employee/EmployeeDashboard";
+import AdminProvider from "../components/pages/admin/AdminProvider";
 
 
 export default function AppRouter() {
@@ -20,6 +21,7 @@ export default function AppRouter() {
         <Route path="/dashboard/admin/vehicles" element={<AdminVehicles />} />
         <Route path="/dashboard/admin/users" element={<AdminUsers />} />
         <Route path="/dashboard/admin/inventory" element={<AdminInventory />} />
+        <Route path="/dashboard/admin/providers" element={<AdminProvider />} />
         <Route path="/dashboard/admin/works" element={<AdminWorks />} />
         <Route path="/dashboard/admin/reports" element={<AdminReports />} />
 

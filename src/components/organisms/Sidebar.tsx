@@ -16,6 +16,7 @@ export default function Sidebar({ role }: SidebarProps) {
             { name: "Dashboard", path: "/dashboard/admin", icon: <HiHome /> },
             { name: "Vehículos", path: "/dashboard/admin/vehicles", icon: <HiTruck /> },
             { name: "Usuarios", path: "/dashboard/admin/users", icon: <HiUsers /> },
+            { name: "Proveedores", path: "/dashboard/admin/providers", icon: <HiCube /> },
             { name: "Inventario", path: "/dashboard/admin/inventory", icon: <HiCube /> },
             { name: "Trabajos", path: "/dashboard/admin/works", icon: <HiWrench /> },
             { name: "Reportes", path: "/dashboard/admin/reports", icon: <HiChartBar /> },
