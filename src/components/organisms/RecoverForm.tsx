@@ -1,14 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import InputText from "../atoms/InputText";
 import Button from "../atoms/Button";
 import FormGroup from "../molecules/FormGroup";
 import { authService } from "../../services/authService";
 
-
 export default function RecoverForm() {
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate(); // 👈 Inicializa el hook
 
+  useEffect(() => {
+    // Si la recuperación fue exitosa...
+    if (success) {
+      // Configura un temporizador para redirigir después de 3 segundos
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 3000); // 3000 milisegundos = 3 segundos
+
+      // Limpia el temporizador para evitar fugas de memoria
+      return () => clearTimeout(timer);
+    }
+  }, [success, navigate]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await authService.recoverPassword(email);
