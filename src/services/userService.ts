@@ -10,6 +10,10 @@ export const UserService = {
         const data = await apiClient("/users");
         return data.content || [];
     },
+    getEmployee: async () => {
+        const data = await apiClient("/employees");
+        return data.content || [];
+    },
     update: (id: number, data: Partial<CreateUserDTO>) => apiClient(`/users/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
