@@ -2,6 +2,8 @@ import { NavLink } from "react-router-dom";
 import { useState } from "react";
 import { HiChartBar, HiCube, HiHome, HiMenu, HiTruck, HiUsers, HiX } from "react-icons/hi";
 import { HiWrench } from "react-icons/hi2";
+import { PiPackageFill } from "react-icons/pi";
+import { FaFileInvoice, FaMoneyBillWave } from "react-icons/fa";
 
 interface SidebarProps {
     role: "Admin" | "Empleado" | "Especialista" | "Cliente" | "Proveedor";
@@ -16,7 +18,9 @@ export default function Sidebar({ role }: SidebarProps) {
             { name: "Dashboard", path: "/dashboard/admin", icon: <HiHome /> },
             { name: "Vehículos", path: "/dashboard/admin/vehicles", icon: <HiTruck /> },
             { name: "Usuarios", path: "/dashboard/admin/users", icon: <HiUsers /> },
-            { name: "Proveedores", path: "/dashboard/admin/providers", icon: <HiCube /> },
+            { name: "Proveedores", path: "/dashboard/admin/providers", icon: <PiPackageFill /> },
+            { name: "Cotizaciones", path: "/dashboard/admin/quotation", icon: <FaFileInvoice /> },
+            { name: "Metodos de Pago", path: "/dashboard/admin/payment", icon: <FaMoneyBillWave /> },
             { name: "Inventario", path: "/dashboard/admin/inventory", icon: <HiCube /> },
             { name: "Trabajos", path: "/dashboard/admin/works", icon: <HiWrench /> },
             { name: "Reportes", path: "/dashboard/admin/reports", icon: <HiChartBar /> },

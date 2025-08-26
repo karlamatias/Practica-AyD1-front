@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { UserRoleId } from "../../../constants/roles";
 import { UserService } from "../../../services/userService";
+import { providerService } from "../../../services/providerService";
 import Button from "../../atoms/Button";
 import InputText from "../../atoms/InputText";
 import Alert from "../../atoms/Alert";
@@ -10,9 +11,11 @@ import ConfirmModal from "../../molecules/ConfirmModal";
 import { FaPlus, FaSave } from "react-icons/fa";
 import type { CreateUserDTO, User } from "../../../types/user";
 
-
 export default function AdminUsers() {
     const [users, setUsers] = useState<User[]>([]);
+    const [suppliers, setSuppliers] = useState<User[]>([]);
+    const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(null);
+
     const [form, setForm] = useState<Omit<User, "id">>({
         firstname: "",
         lastname: "",
@@ -20,7 +23,9 @@ export default function AdminUsers() {
         phoneNumber: "",
         password: "",
         roleId: UserRoleId.EMPLOYEE,
+        providerId: 0
     });
+
     const [editingId, setEditingId] = useState<number | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -34,6 +39,7 @@ export default function AdminUsers() {
         if (!form.phoneNumber) return "El campo Teléfono es obligatorio.";
         if (!form.password && !isEditing) return "El campo Contraseña es obligatorio para un nuevo usuario.";
         if (!form.roleId) return "El campo Rol es obligatorio.";
+        if (Number(form.roleId) === UserRoleId.SUPPLIER && !selectedSupplierId) return "Debes seleccionar un proveedor.";
         return null;
     };
 
@@ -50,6 +56,18 @@ export default function AdminUsers() {
         fetchUsers();
     }, []);
 
+    // Cargar proveedores
+    useEffect(() => {
+        const fetchSuppliers = async () => {
+            try {
+                const allSuppliers = await providerService.getAllProverdes();
+                setSuppliers(allSuppliers);
+            } catch (error: any) {
+                setAlert({ type: "error", message: error.message || "No se pudieron cargar los proveedores." });
+            }
+        };
+        fetchSuppliers();
+    }, []);
 
     // Detecta cambios al editar
     useEffect(() => {
@@ -68,27 +86,32 @@ export default function AdminUsers() {
         }
 
         try {
+            const payload: Omit<User, "id"> = {
+                ...form,
+                // Solo incluir providerId si el rol es proveedor y hay un proveedor seleccionado
+                ...(Number(form.roleId) === UserRoleId.SUPPLIER && selectedSupplierId !== null
+                    ? { providerId: selectedSupplierId }
+                    : {})
+            };
+
             let user: User;
 
             if (editingId !== null) {
-                // Editar usuario
-                const payload = { ...form };
-                if (!payload.password) delete payload.password; // No enviar password vacío
+                if (!payload.password) delete payload.password;
                 user = await UserService.update(editingId, payload);
                 setUsers(users.map(u => u.id === editingId ? user : u));
                 setAlert({ type: "success", message: `Usuario "${user.firstname} ${user.lastname}" actualizado correctamente.` });
                 setEditingId(null);
             } else {
-                // Crear usuario
-                user = await UserService.create(form as CreateUserDTO);
+                user = await UserService.create(payload as CreateUserDTO);
                 setUsers([...users, user]);
                 setAlert({ type: "success", message: `Usuario "${user.firstname} ${user.lastname}" creado correctamente.` });
             }
         } catch (error: any) {
             setAlert({ type: "error", message: error.message || "Ocurrió un error." });
         } finally {
-            // Reset form
-            setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE });
+            setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0 });
+            setSelectedSupplierId(null);
             setHasChanges(false);
         }
     };
@@ -106,8 +129,6 @@ export default function AdminUsers() {
         }
     };
 
-
-    // Cargar datos en el formulario para editar
     const handleEditClick = (user: User) => {
         setEditingId(user.id);
         setForm({
@@ -117,51 +138,48 @@ export default function AdminUsers() {
             phoneNumber: user.phoneNumber,
             password: "",
             roleId: user.role?.id || UserRoleId.EMPLOYEE,
+            providerId: 0
         });
+        setSelectedSupplierId(user.providerId || null);
     };
 
-
-    // Función para limpiar formulario
     const resetForm = () => {
-        setForm({
-            firstname: "",
-            lastname: "",
-            email: "",
-            phoneNumber: "",
-            password: "",
-            roleId: UserRoleId.EMPLOYEE,
-        });
+        setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0 });
+        setSelectedSupplierId(null);
         setEditingId(null);
         setHasChanges(false);
     };
 
-    // Al mostrar la alerta, la cerramos automáticamente
+    // Alerta automática
     useEffect(() => {
         if (!alert) return;
         const timer = setTimeout(() => setAlert(null), 2000);
         return () => clearTimeout(timer);
     }, [alert]);
+
     return (
         <AdminLayout>
             <h2 className="text-2xl font-bold mb-4">Usuarios</h2>
 
-            {/* ALERTA */}
             {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
-            {/* FORMULARIO */}
             <div className="bg-white p-4 rounded shadow mb-6">
-                <h3 className="font-semibold mb-2">
-                    {editingId !== null ? "Editar usuario" : "Agregar usuario"}
-                </h3>
+                <h3 className="font-semibold mb-2">{editingId !== null ? "Editar usuario" : "Agregar usuario"}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
-                    <InputText label="Nombre" value={form.firstname} onChange={(e) => setForm({ ...form, firstname: e.target.value })} />
-                    <InputText label="Apellido" value={form.lastname} onChange={(e) => setForm({ ...form, lastname: e.target.value })} />
-                    <InputText label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                    <InputText label="Teléfono" value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
-                    <InputText label="Contraseña" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                    <InputText label="Nombre" value={form.firstname} onChange={e => setForm({ ...form, firstname: e.target.value })} />
+                    <InputText label="Apellido" value={form.lastname} onChange={e => setForm({ ...form, lastname: e.target.value })} />
+                    <InputText label="Email" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                    <InputText label="Teléfono" value={form.phoneNumber} onChange={e => setForm({ ...form, phoneNumber: e.target.value })} />
+                    <InputText label="Contraseña" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+
+                    {/* Select de rol */}
                     <select
                         value={form.roleId}
-                        onChange={(e) => setForm({ ...form, roleId: Number(e.target.value) })}
+                        onChange={e => {
+                            const roleId = Number(e.target.value);
+                            setForm({ ...form, roleId });
+                            if (roleId !== UserRoleId.SUPPLIER) setSelectedSupplierId(null);
+                        }}
                         className="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                     >
                         <option value={UserRoleId.ADMIN}>Administrador</option>
@@ -171,18 +189,38 @@ export default function AdminUsers() {
                         <option value={UserRoleId.SUPPLIER}>Proveedor</option>
                     </select>
 
+                    {/* Select proveedor solo si rol es SUPPLIER */}
+                    {Number(form.roleId) === UserRoleId.SUPPLIER && (
+                        <div className="md:col-span-2 mt-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Proveedor asociado</label>
+                            <select
+                                value={selectedSupplierId || ""}
+                                onChange={e => setSelectedSupplierId(Number(e.target.value))}
+                                className="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">Selecciona un proveedor</option>
+                                {suppliers.map(s => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.firstname} {s.lastname} - {s.email}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
-                <br></br>
+
+                <br />
+
                 <Button
                     onClick={handleAddOrUpdateUser}
                     disabled={editingId !== null && !hasChanges}
                     className={`
-        flex items-center gap-2 px-5 py-2 rounded-lg
-        text-white font-semibold shadow-md
-        transition-all duration-200
-        ${editingId !== null ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-500 hover:bg-green-600'}
-        disabled:opacity-50 disabled:cursor-not-allowed
-    `}
+                        flex items-center gap-2 px-5 py-2 rounded-lg
+                        text-white font-semibold shadow-md
+                        transition-all duration-200
+                        ${editingId !== null ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-500 hover:bg-green-600'}
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                    `}
                 >
                     {editingId !== null ? <FaSave /> : <FaPlus />}
                     {editingId !== null ? "Actualizar" : "Agregar"}
@@ -198,7 +236,7 @@ export default function AdminUsers() {
                 )}
             </div>
 
-            {/* LISTA DE USUARIOS */}
+            {/* Lista de usuarios */}
             <div className="bg-white p-4 rounded shadow">
                 <h3 className="font-semibold mb-2">Lista de usuarios</h3>
                 <div className="overflow-x-auto">
@@ -214,7 +252,7 @@ export default function AdminUsers() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {users.map((user) => (
+                            {users.map(user => (
                                 <tr key={user.id}>
                                     <td className="px-4 py-2 text-sm text-gray-700">{user.firstname}</td>
                                     <td className="px-4 py-2 text-sm text-gray-700">{user.lastname}</td>
@@ -222,21 +260,12 @@ export default function AdminUsers() {
                                     <td className="px-4 py-2 text-sm text-gray-700">{user.phoneNumber}</td>
                                     <td className="px-4 py-2 text-sm text-gray-700">{user.role?.description || "Empleado"}</td>
                                     <td className="px-4 py-2 text-center flex justify-center gap-2">
-                                        <button
-                                            onClick={() => handleEditClick(user)}
-                                            className="p-1 rounded hover:bg-yellow-200 text-yellow-600"
-                                            title="Editar"
-                                        >
+                                        <button onClick={() => handleEditClick(user)} className="p-1 rounded hover:bg-yellow-200 text-yellow-600" title="Editar">
                                             <FiEdit size={18} />
                                         </button>
-                                        <button
-                                            onClick={() => setConfirmDeleteId(user.id)}
-                                            className="p-1 rounded hover:bg-red-200 text-red-600"
-                                            title="Eliminar"
-                                        >
+                                        <button onClick={() => setConfirmDeleteId(user.id)} className="p-1 rounded hover:bg-red-200 text-red-600" title="Eliminar">
                                             <FiTrash2 size={18} />
                                         </button>
-
                                     </td>
                                 </tr>
                             ))}
@@ -254,9 +283,6 @@ export default function AdminUsers() {
                     onCancel={() => setConfirmDeleteId(null)}
                 />
             )}
-
         </AdminLayout>
-
-
     );
 }
