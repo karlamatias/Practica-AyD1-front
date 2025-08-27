@@ -1,5 +1,14 @@
+import type { EmployeeAssigned } from "./employee";
 import type { User } from "./user";
 import type { Vehicle } from "./vehicle";
+
+export interface PaginatedResponse<T> {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+}
 
 export interface CreateJobDTO {
     vehicleId: number
@@ -8,19 +17,6 @@ export interface CreateJobDTO {
     startDate: string;
     endDate: string;
     jobType: string;
-}
-
-export interface Specialization {
-    id: number;
-    name: string;
-    createdAt: string;
-}
-
-export interface EmployeeAssigned {
-    id: number;
-    user: User;
-    specialization: Specialization;
-    status: "BUSY" | "AVAILABLE" | "OFFLINE";
 }
 
 export interface JobForm {
@@ -39,10 +35,12 @@ export interface Job {
     vehicle: Vehicle;
     employeeAssigned: EmployeeAssigned;
     description: string;
-    startDate: string; // ISO string
-    endDate: string;   // ISO string
-    status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+    startDate: string;
+    endDate: string;
+    status: "PENDING" | "INPROGRESS" | "COMPLETED";
     jobType: "CORRECTIVE" | "PREVENTIVE";
     createdAt: string;
     createdBy: User;
 }
+// Response del back
+export type JobsResponse = PaginatedResponse<Job>;

@@ -1,16 +1,7 @@
 import InputText from "../atoms/InputText";
 import Button from "../atoms/Button";
 import { useState } from "react";
-
-interface Work {
-  id: number;
-  vehicle: string;
-  type: string;
-  status: "Asignado" | "En curso" | "Finalizado";
-  estimatedTime: string;
-  observations?: string;
-}
-
+import type { Work } from "../../types/works";
 
 interface Props {
     work: Work;
