@@ -1,4 +1,4 @@
-import type { CreateJobDTO, Job, JobForm } from "../types/jobs";
+import type { CreateJobDTO, Job, JobForm, JobsResponse } from "../types/jobs";
 import apiClient from "../utils/apiClient";
 
 export const jobsService = {
@@ -16,4 +16,15 @@ export const jobsService = {
         body: JSON.stringify(data),
     }),
     deleteJobs: (id: number) => apiClient(`/jobs/${id}`, { method: "DELETE" }),
+
+    getMyJobs: async (): Promise<JobsResponse> => {
+        const data = await apiClient("/jobs/me");
+        return data as JobsResponse;
+    },
+
+    changeStatus: (id: number, status: "PENDING" | "INPROGRESS" | "COMPLETED") =>
+        apiClient(`/jobs/change-status/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({ status }),
+        }),
 }
