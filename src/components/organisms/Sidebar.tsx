@@ -4,6 +4,7 @@ import { HiChartBar, HiCube, HiHome, HiMenu, HiTruck, HiUsers, HiX } from "react
 import { HiWrench } from "react-icons/hi2";
 import { PiPackageFill } from "react-icons/pi";
 import { FaFileInvoice, FaMoneyBillWave } from "react-icons/fa";
+import { FiList } from "react-icons/fi";
 
 interface SidebarProps {
     role: "Admin" | "Empleado" | "Especialista" | "Cliente" | "Proveedor";
@@ -15,11 +16,11 @@ export default function Sidebar({ role }: SidebarProps) {
     // Links por rol
     const allLinks = {
         Admin: [
-            { name: "Dashboard", path: "/dashboard/admin", icon: <HiHome /> },
             { name: "Vehículos", path: "/dashboard/admin/vehicles", icon: <HiTruck /> },
             { name: "Usuarios", path: "/dashboard/admin/users", icon: <HiUsers /> },
             { name: "Proveedores", path: "/dashboard/admin/providers", icon: <PiPackageFill /> },
             { name: "Cotizaciones", path: "/dashboard/admin/quotation", icon: <FaFileInvoice /> },
+            { name: "Ordenes", path: "/dashboard/admin/orders", icon: <FiList /> },
             { name: "Metodos de Pago", path: "/dashboard/admin/payment", icon: <FaMoneyBillWave /> },
             { name: "Inventario", path: "/dashboard/admin/inventory", icon: <HiCube /> },
             { name: "Trabajos", path: "/dashboard/admin/works", icon: <HiWrench /> },
@@ -37,8 +38,8 @@ export default function Sidebar({ role }: SidebarProps) {
             { name: "Servicios", path: "/dashboard/customer/services", icon: <HiWrench /> },
         ],
         Proveedor: [
-            { name: "Dashboard", path: "/dashboard/supplier", icon: <HiHome /> },
-            { name: "Inventario", path: "/dashboard/supplier/inventory", icon: <HiCube /> },
+            { name: "Cotizaciones", path: "/dashboard/supplier/quotation", icon: <FaFileInvoice /> },
+             { name: "Ordenes", path: "/dashboard/supplier/orders", icon: <FiList /> },
         ],
     };
 
