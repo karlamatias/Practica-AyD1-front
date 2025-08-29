@@ -3,18 +3,19 @@ import Button from "../../atoms/Button";
 import InputText from "../../atoms/InputText";
 import AdminLayout from "../../templates/AdminLayout";
 import ConfirmModal from "../../molecules/ConfirmModal";
-import type { Vehicle, CreateVehicleDTO } from "../../../types/vehicle";
+import type { Vehicle} from "../../../types/vehicle";
 import { vehicleService } from "../../../services/vehicleService";
 import { UserService } from "../../../services/userService";
-import type { Employee, User } from "../../../types/user";
+import type { Employee} from "../../../types/user";
 import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaPlus, FaSave } from "react-icons/fa";
 import Alert from "../../atoms/Alert";
 import type { CreateJobDTO, Job, JobForm } from "../../../types/jobs";
 import { jobsService } from "../../../services/jobsService";
+import { useJobsSocket } from "../../../hooks/useJobsSocket";
 
-export default function AdminVehicles() {
+export default function AdminWorks() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [employees, setEmployed] = useState<Employee[]>([]);
@@ -31,6 +32,8 @@ export default function AdminVehicles() {
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
+    const { subscribeToJobs } = useJobsSocket();
+
     const toBackendDate = (dateStr: string) => {
         if (!dateStr) return "";
         const d = new Date(dateStr);
@@ -42,7 +45,7 @@ export default function AdminVehicles() {
         const min = String(d.getMinutes()).padStart(2, '0');
         const ss = String(d.getSeconds()).padStart(2, '0');
 
-        const offsetHours = -6; 
+        const offsetHours = -6;
         const offsetSign = offsetHours >= 0 ? "+" : "-";
         const offsetStr = `${offsetSign}${String(Math.abs(offsetHours)).padStart(2, '0')}:00`;
 
@@ -100,6 +103,45 @@ export default function AdminVehicles() {
         };
         fetchJobs();
     }, []);
+
+    useEffect(() => {
+        const fetchJobs = async () => {
+            try {
+                const allJobs = await jobsService.getAllJobs();
+                setJobs(allJobs); 
+            } catch (error: any) {
+                setAlert({ type: "error", message: error.message || "No se pudieron cargar los trabajos." });
+            }
+        };
+        fetchJobs();
+
+        // Suscribirse a jobs
+        const handleJobMessage = (message: any) => {
+            const { action, job } = message;
+            setJobs(prevJobs => {
+                const jobId = job.id;
+                switch (action) {
+                    case "created":
+                        if (prevJobs.some(j => j.id === jobId)) return prevJobs;
+                        return [...prevJobs, job];
+                    case "updated":
+                        return prevJobs.map(j => j.id === jobId ? job : j);
+                    case "deleted":
+                        return prevJobs.filter(j => j.id !== jobId);
+                    default:
+                        return prevJobs;
+                }
+            });
+        };
+
+        const unsubscribe = subscribeToJobs(handleJobMessage);
+
+        return () => {
+            unsubscribe();
+        };
+
+    }, [subscribeToJobs]);
+
 
 
     // Detectar cambios al editar
@@ -284,7 +326,6 @@ export default function AdminVehicles() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Fecha inicio</label>
                         <InputText
                             type="datetime-local"
-                            label="Fecha de inicio"
                             value={form.startDate}
                             onChange={e => setForm({ ...form, startDate: e.target.value })}
                         />
@@ -293,7 +334,6 @@ export default function AdminVehicles() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Fecha fin</label>
                         <InputText
                             type="datetime-local"
-                            label="Fecha de finalización"
                             value={form.endDate}
                             onChange={e => setForm({ ...form, endDate: e.target.value })}
                         />
@@ -329,6 +369,7 @@ export default function AdminVehicles() {
                             <th className="px-4 py-2 text-left">Descripción</th>
                             <th className="px-4 py-2 text-left">Inicio</th>
                             <th className="px-4 py-2 text-left">Fin</th>
+                            <th className="px-4 py-2 text-left">Estado</th>
                             <th className="px-4 py-2 text-left">Acciones</th>
                         </tr>
                     </thead>
@@ -345,6 +386,7 @@ export default function AdminVehicles() {
                                 <td className="px-4 py-2">{job.description}</td>
                                 <td className="px-4 py-2">{job.startDate}</td>
                                 <td className="px-4 py-2">{job.endDate}</td>
+                                <td className="px-4 py-2">{job.status}</td>
                                 <td className="px-4 py-2 text-center flex justify-center gap-2">
                                     <button
                                         onClick={() => handleEditClick(job)}

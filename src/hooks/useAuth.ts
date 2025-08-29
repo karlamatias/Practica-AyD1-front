@@ -7,15 +7,21 @@ export const useAuth = () => {
   // Login inicial: usuario + contraseña
   const login = async (username: string, password: string) => {
     const res = await authService.login(username, password);
-    return res; // { token, role }
+    return res;
   };
 
   // Verificación del código
   const verifyCode = async (email: string, code: string) => {
     setLoading(true);
     try {
-      const res = await authService.verifyCode(email, code);
-      return res; 
+      const userData = await authService.verifyCode(email, code);
+
+      // Guardar token y user en localStorage para sesiones
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No se guardó el token correctamente");
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      return userData;
     } catch (error: any) {
       throw error;
     } finally {
