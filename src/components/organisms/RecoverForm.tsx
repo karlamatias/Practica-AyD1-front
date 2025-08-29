@@ -8,7 +8,7 @@ import { authService } from "../../services/authService";
 export default function RecoverForm() {
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState(false);
-  const navigate = useNavigate(); // 👈 Inicializa el hook
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     // Si la recuperación fue exitosa...
@@ -16,7 +16,7 @@ export default function RecoverForm() {
       // Configura un temporizador para redirigir después de 3 segundos
       const timer = setTimeout(() => {
         navigate("/");
-      }, 3000); // 3000 milisegundos = 3 segundos
+      }, 3000); 
 
       // Limpia el temporizador para evitar fugas de memoria
       return () => clearTimeout(timer);

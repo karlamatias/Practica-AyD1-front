@@ -42,5 +42,5 @@ export interface Job {
     createdAt: string;
     createdBy: User;
 }
-// Response del back
+
 export type JobsResponse = PaginatedResponse<Job>;

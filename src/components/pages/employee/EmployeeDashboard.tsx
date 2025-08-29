@@ -25,7 +25,6 @@ export default function EmployeeDashboard() {
                 : `${minutes}m`;
     }
 
-    // 🔹 Fetch inicial
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -52,7 +51,6 @@ export default function EmployeeDashboard() {
         fetchJobs();
     }, []);
 
-    // 🔹 Handlers que llaman al endpoint /change-status/:id
     const handleStart = async (id: number) => {
         try {
             await jobsService.changeStatus(id, "INPROGRESS");
@@ -86,7 +84,6 @@ export default function EmployeeDashboard() {
         }
     };
 
-    // Otros handlers de acciones adicionales
     const handleReportDamage = (id: number) => console.log("Reportar daños", id);
     const handleRequestSupport = (id: number) => console.log("Solicitar apoyo", id);
     const handleUseSparePart = (id: number) => console.log("Usar repuesto", id);

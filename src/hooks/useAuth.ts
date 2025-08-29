@@ -15,7 +15,7 @@ export const useAuth = () => {
     setLoading(true);
     try {
       const res = await authService.verifyCode(email, code);
-      return res; // { token }
+      return res; 
     } catch (error: any) {
       throw error;
     } finally {

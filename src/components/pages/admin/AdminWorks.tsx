@@ -7,7 +7,6 @@ import type { Vehicle, CreateVehicleDTO } from "../../../types/vehicle";
 import { vehicleService } from "../../../services/vehicleService";
 import { UserService } from "../../../services/userService";
 import type { Employee, User } from "../../../types/user";
-import { UserRoleId } from "../../../constants/roles";
 import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaPlus, FaSave } from "react-icons/fa";
@@ -43,7 +42,7 @@ export default function AdminVehicles() {
         const min = String(d.getMinutes()).padStart(2, '0');
         const ss = String(d.getSeconds()).padStart(2, '0');
 
-        const offsetHours = -6; // Guatemala UTC-6
+        const offsetHours = -6; 
         const offsetSign = offsetHours >= 0 ? "+" : "-";
         const offsetStr = `${offsetSign}${String(Math.abs(offsetHours)).padStart(2, '0')}:00`;
 

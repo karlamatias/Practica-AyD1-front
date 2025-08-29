@@ -1,7 +1,7 @@
 import { HiLogout } from "react-icons/hi";
 
 interface TopbarProps {
-  title?: string; // Opcional, si no se pasa se puede mostrar un valor por defecto
+  title?: string; 
 }
 
 export default function Topbar({ title }: TopbarProps) {
