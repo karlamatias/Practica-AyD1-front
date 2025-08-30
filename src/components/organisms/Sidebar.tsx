@@ -3,7 +3,7 @@ import { useState } from "react";
 import { HiChartBar, HiCube, HiHome, HiMenu, HiTruck, HiUsers, HiX } from "react-icons/hi";
 import { HiWrench } from "react-icons/hi2";
 import { PiPackageFill } from "react-icons/pi";
-import { FaFileInvoice, FaMoneyBillWave } from "react-icons/fa";
+import { FaFileInvoice, FaMoneyBillWave, FaUserCog } from "react-icons/fa";
 import { FiList } from "react-icons/fi";
 
 interface SidebarProps {
@@ -18,6 +18,7 @@ export default function Sidebar({ role }: SidebarProps) {
         Admin: [
             { name: "Vehículos", path: "/dashboard/admin/vehicles", icon: <HiTruck /> },
             { name: "Usuarios", path: "/dashboard/admin/users", icon: <HiUsers /> },
+            { name: "Especialistas", path: "/dashboard/admin/specialist", icon: <FaUserCog /> },
             { name: "Proveedores", path: "/dashboard/admin/providers", icon: <PiPackageFill /> },
             { name: "Cotizaciones", path: "/dashboard/admin/quotation", icon: <FaFileInvoice /> },
             { name: "Ordenes", path: "/dashboard/admin/orders", icon: <FiList /> },
