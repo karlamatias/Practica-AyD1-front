@@ -1,3 +1,6 @@
+import type { ChangePasswordDTO } from "../types/changePages";
+import apiClient from "../utils/apiClient";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 // Servicio de autenticación
@@ -51,4 +54,19 @@ export const authService = {
 
     return true;
   },
+  changePassword: async (data: ChangePasswordDTO) => {
+    const res = await fetch(`${API_URL}/auth/change-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const responseData = await res.json();
+
+    if (!res.ok) {
+      throw new Error(responseData.message || "No se pudo cambiar la contraseña");
+    }
+
+    return responseData;
+  }
 };
