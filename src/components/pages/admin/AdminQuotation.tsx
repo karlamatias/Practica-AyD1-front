@@ -163,8 +163,8 @@ export default function AdminQuotation() {
                     <div className="bg-white p-4 rounded shadow mb-6 space-y-2">
                         <h3 className="font-semibold text-lg">Agregar Ítem</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            <InputText label="Nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                            <InputText label="Descripción" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                            <InputText label="Nombre Repuesto" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                            <InputText label="Descripción Repuesto" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
                             <InputText
                                 label="Cantidad"
                                 type="number"

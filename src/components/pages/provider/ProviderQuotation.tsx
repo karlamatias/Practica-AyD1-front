@@ -102,7 +102,7 @@ export default function ProviderQuotation() {
                                             onChange={(e) =>
                                                 handlePriceChange(q.id, item.id, e.target.value)
                                             }
-                                            placeholder="Precio"
+                                            placeholder="Precio/u"
                                         />
                                     </div>
                                 </div>

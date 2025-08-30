@@ -57,7 +57,6 @@ export default function Sidebar({ role }: SidebarProps) {
                 {isOpen ? <HiX size={24} /> : <HiMenu size={24} />}
             </button>
 
-            {/* Logo / Título */}
             {isOpen && <h2 className="text-xl font-bold mb-6">Taller {role}</h2>}
 
             <nav className="flex flex-col space-y-2">
