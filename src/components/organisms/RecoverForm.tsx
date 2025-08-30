@@ -11,21 +11,10 @@ interface RecoverFormProps {
 
 export default function RecoverForm({ onSuccess }: RecoverFormProps) {
   const [email, setEmail] = useState("");
-  const [success, setSuccess] = useState(false);
-  const navigate = useNavigate(); 
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    // Si la recuperación fue exitosa...
-    if (success) {
-      // Configura un temporizador para redirigir después de 3 segundos
-      const timer = setTimeout(() => {
-        navigate("/");
-      }, 3000); 
-
-      // Limpia el temporizador para evitar fugas de memoria
-      return () => clearTimeout(timer);
-    }
-  }, [success, navigate]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -48,7 +37,6 @@ export default function RecoverForm({ onSuccess }: RecoverFormProps) {
 
   return (
     <div className="space-y-4">
-
       {/* Instrucciones */}
       <p className="text-gray-600 text-sm">
         Ingresa tu correo electrónico. Te enviaremos un código de verificación
@@ -84,8 +72,9 @@ export default function RecoverForm({ onSuccess }: RecoverFormProps) {
           onClick={() => navigate("/")}
           className="text-indigo-600 underline text-sm hover:text-indigo-700"
         >
-          Regresar
+          Regresar al login
         </button>
+
       </form>
     </div>
   );

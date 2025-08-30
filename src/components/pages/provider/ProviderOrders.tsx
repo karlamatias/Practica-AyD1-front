@@ -6,39 +6,7 @@ import Button from "../../atoms/Button";
 import { orderService } from "../../../services/orderService";
 import ProviderLayout from "../../templates/ProviderLayout";
 import { FaTruck, FaClock, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-
-type Provider = {
-    id: number;
-    name: string;
-    contactName: string;
-    email: string;
-    phone: string;
-    address: string;
-    createdAt: string;
-};
-
-type QuotationRequest = {
-    id: number;
-    createdAt: string;
-};
-
-type Invoice = {
-    id: number | null;
-    number: string | null;
-    totalAmount: number | null;
-    paymentMethodId: number | null;
-    fileUrl: string | null;
-    issuedAt: string | null;
-};
-
-type Order = {
-    id: number;
-    totalAmount: number;
-    provider: Provider;
-    quotationRequest: QuotationRequest;
-    invoice: Invoice;
-    status: "PENDING" | "PAID" | "CANCELLED" | "DELIVERED" | "DELAYED" | "COMPLETED";
-};
+import type { Order } from "../../../types/orders";
 
 export default function ProviderOrders() {
     const [orders, setOrders] = useState<Order[]>([]);

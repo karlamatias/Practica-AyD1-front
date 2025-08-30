@@ -1,5 +1,4 @@
 import type { ChangePasswordDTO } from "../types/changePages";
-import apiClient from "../utils/apiClient";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
