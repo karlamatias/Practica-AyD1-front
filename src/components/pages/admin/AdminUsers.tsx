@@ -10,11 +10,15 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import ConfirmModal from "../../molecules/ConfirmModal";
 import { FaPlus, FaSave } from "react-icons/fa";
 import type { CreateUserDTO, User } from "../../../types/user";
+import { SpecializationService } from "../../../services/specializationService";
+import type { Specialization } from "../../../types/specialization";
 
 export default function AdminUsers() {
     const [users, setUsers] = useState<User[]>([]);
     const [suppliers, setSuppliers] = useState<User[]>([]);
     const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(null);
+    const [specializations, setSpecializations] = useState<Specialization[]>([]);
+    const [selectedSpecializationId, setSelectedSpecializationId] = useState<number | null>(null);
 
     const [form, setForm] = useState<Omit<User, "id">>({
         firstname: "",
@@ -23,7 +27,8 @@ export default function AdminUsers() {
         phoneNumber: "",
         password: "",
         roleId: UserRoleId.EMPLOYEE,
-        providerId: 0
+        providerId: 0,
+        specializationId: 0
     });
 
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -40,6 +45,8 @@ export default function AdminUsers() {
         if (!form.password && !isEditing) return "El campo Contraseña es obligatorio para un nuevo usuario.";
         if (!form.roleId) return "El campo Rol es obligatorio.";
         if (Number(form.roleId) === UserRoleId.SUPPLIER && !selectedSupplierId) return "Debes seleccionar un proveedor.";
+        if (Number(form.roleId) === UserRoleId.SPECIALIST && !selectedSpecializationId)
+            return "Debes seleccionar una especialidad.";
         return null;
     };
 
@@ -69,6 +76,19 @@ export default function AdminUsers() {
         fetchSuppliers();
     }, []);
 
+    //cargar especialidades
+    useEffect(() => {
+        const fetchSpecializations = async () => {
+            try {
+                const allSpecs = await SpecializationService.getAllSpecialization();
+                setSpecializations(allSpecs);
+            } catch (error: any) {
+                setAlert({ type: "error", message: error.message || "No se pudieron cargar las especialidades." });
+            }
+        };
+        fetchSpecializations();
+    }, []);
+
     // Detecta cambios al editar
     useEffect(() => {
         if (editingId !== null) {
@@ -91,6 +111,9 @@ export default function AdminUsers() {
                 // Solo incluir providerId si el rol es proveedor y hay un proveedor seleccionado
                 ...(Number(form.roleId) === UserRoleId.SUPPLIER && selectedSupplierId !== null
                     ? { providerId: selectedSupplierId }
+                    : {}),
+                ...(Number(form.roleId) === UserRoleId.SPECIALIST && selectedSpecializationId !== null
+                    ? { specializationId: selectedSpecializationId }
                     : {})
             };
 
@@ -110,7 +133,7 @@ export default function AdminUsers() {
         } catch (error: any) {
             setAlert({ type: "error", message: error.message || "Ocurrió un error." });
         } finally {
-            setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0 });
+            setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0, specializationId: 0 });
             setSelectedSupplierId(null);
             setHasChanges(false);
         }
@@ -138,13 +161,15 @@ export default function AdminUsers() {
             phoneNumber: user.phoneNumber,
             password: "",
             roleId: user.role?.id || UserRoleId.EMPLOYEE,
-            providerId: 0
+            providerId: 0,
+            specializationId: user.specializationId || 0,
         });
         setSelectedSupplierId(user.providerId || null);
+        setSelectedSpecializationId(user.specializationId || null);
     };
 
     const resetForm = () => {
-        setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0 });
+        setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0, specializationId: 0 });
         setSelectedSupplierId(null);
         setEditingId(null);
         setHasChanges(false);
@@ -188,6 +213,25 @@ export default function AdminUsers() {
                         <option value={UserRoleId.CUSTOMER}>Cliente</option>
                         <option value={UserRoleId.SUPPLIER}>Proveedor</option>
                     </select>
+
+                    {/* Select especialidad solo si rol es SPECIALIST */}
+                    {Number(form.roleId) === UserRoleId.SPECIALIST && (
+                        <div className="md:col-span-2 mt-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Especialidad</label>
+                            <select
+                                value={form.specializationId || ""}
+                                onChange={e => setForm({ ...form, specializationId: Number(e.target.value) })}
+                                className="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">Selecciona una especialidad</option>
+                                {specializations.map(s => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     {/* Select proveedor solo si rol es SUPPLIER */}
                     {Number(form.roleId) === UserRoleId.SUPPLIER && (

@@ -21,16 +21,17 @@ export interface User {
   roleId?: number;
   role?: Role;
   providerId: number
+  specializationId: number
 }
 
 
 export interface Specialization {
   id: number;
   name: string;
-  createdAt: string; // ISO string
+  createdAt: string; 
 }
 
-export type EmployeeStatus = "AVAILABLE" | "BUSY" | "OFF"; // según posibles estados
+export type EmployeeStatus = "AVAILABLE" | "BUSY" | "OFF";
 
 export interface Employee {
   id: number;

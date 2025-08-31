@@ -3,10 +3,10 @@ import Button from "../../atoms/Button";
 import InputText from "../../atoms/InputText";
 import AdminLayout from "../../templates/AdminLayout";
 import ConfirmModal from "../../molecules/ConfirmModal";
-import type { Vehicle} from "../../../types/vehicle";
+import type { Vehicle } from "../../../types/vehicle";
 import { vehicleService } from "../../../services/vehicleService";
 import { UserService } from "../../../services/userService";
-import type { Employee} from "../../../types/user";
+import type { Employee } from "../../../types/user";
 import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaPlus, FaSave } from "react-icons/fa";
@@ -108,7 +108,7 @@ export default function AdminWorks() {
         const fetchJobs = async () => {
             try {
                 const allJobs = await jobsService.getAllJobs();
-                setJobs(allJobs); 
+                setJobs(allJobs);
             } catch (error: any) {
                 setAlert({ type: "error", message: error.message || "No se pudieron cargar los trabajos." });
             }

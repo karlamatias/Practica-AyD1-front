@@ -1,5 +1,4 @@
 export interface Specialization {
-    id: number;
+    id?: number;
     name: string;
-    createdAt: string;
 }

@@ -16,6 +16,7 @@ import ProviderQuotation from "../components/pages/provider/ProviderQuotation";
 import AdminOrders from "../components/pages/admin/AdminOrders";
 import ProviderOrders from "../components/pages/provider/ProviderOrders";
 import { SocketProvider } from "../hooks/useJobsSocket";
+import AdminSpecialist from "../components/pages/admin/AdminSpecialist";
 
 const token = localStorage.getItem("token") || "";
 
@@ -29,6 +30,7 @@ export default function AppRouter() {
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           <Route path="/dashboard/admin/vehicles" element={<AdminVehicles />} />
           <Route path="/dashboard/admin/users" element={<AdminUsers />} />
+          <Route path="/dashboard/admin/specialist" element={<AdminSpecialist />} />
           <Route path="/dashboard/admin/inventory" element={<AdminInventory />} />
           <Route path="/dashboard/admin/providers" element={<AdminProvider />} />
           <Route path="/dashboard/admin/quotation" element={<AdminQuotation />} />
