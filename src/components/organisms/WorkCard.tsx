@@ -1,14 +1,23 @@
+"use client";
+import { useState } from "react";
 import WorkInfo from "../molecules/WorkInfo";
 import Button from "../atoms/Button";
+import UseSparePartModal from "../molecules/UseSparePartModal"; // ⬅️ Modal como molécula
 import type { Work } from "../../types/works";
-import { FiPlay, FiCheck, FiAlertTriangle, FiUsers, FiTool, FiSettings } from "react-icons/fi";
+import {
+    FiPlay,
+    FiCheck,
+    FiAlertTriangle,
+    FiUsers,
+    FiTool,
+    FiSettings,
+} from "react-icons/fi";
 
 interface WorkCardProps extends Work {
     onStart?: (id: number) => void;
     onFinish?: (id: number) => void;
     onReportDamage?: (id: number) => void;
     onRequestSupport?: (id: number) => void;
-    onUseSparePart?: (id: number) => void;
     onNotifyMaintenance?: (id: number) => void;
     onRegister?: (work: Work) => void;
 }
@@ -24,13 +33,13 @@ export default function WorkCard({
     onFinish,
     onReportDamage,
     onRequestSupport,
-    onUseSparePart,
     onNotifyMaintenance,
     onRegister,
 }: WorkCardProps) {
+    const [showModal, setShowModal] = useState(false);
+
     const isAssigned = status === "Asignado";
     const isInProgress = status === "En curso";
-    const isCompleted = status === "Finalizado";
 
     return (
         <div className="flex flex-col md:flex-row justify-between p-4 mb-4 bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-shadow duration-300 gap-4 md:gap-0">
@@ -92,15 +101,13 @@ export default function WorkCard({
                             title="Solicitar apoyo"
                         />
                     )}
-                    {onUseSparePart && (
-                        <Button
-                            onClick={() => onUseSparePart(id)}
-                            color="indigo"
-                            icon={<FiTool className="w-5 h-5" />}
-                            className="p-2 rounded-full"
-                            title="Usar repuesto"
-                        />
-                    )}
+                    <Button
+                        onClick={() => setShowModal(true)}
+                        color="indigo"
+                        icon={<FiTool className="w-5 h-5" />}
+                        className="p-2 rounded-full"
+                        title="Usar repuesto"
+                    />
                     {onNotifyMaintenance && (
                         <Button
                             onClick={() => onNotifyMaintenance(id)}
@@ -113,7 +120,14 @@ export default function WorkCard({
                     {onRegister && (
                         <Button
                             onClick={() =>
-                                onRegister({ id, vehicle, type, status, estimatedTime, observations })
+                                onRegister({
+                                    id,
+                                    vehicle,
+                                    type,
+                                    status,
+                                    estimatedTime,
+                                    observations,
+                                })
                             }
                             color="secondary"
                             icon={<FiCheck className="w-5 h-5" />}
@@ -123,6 +137,16 @@ export default function WorkCard({
                     )}
                 </div>
             </div>
+
+            {/* Modal de usar repuesto */}
+            <UseSparePartModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                maintenanceJobId={id}
+                onSuccess={() => {
+                    console.log("✅ Repuesto registrado correctamente");
+                }}
+            />
         </div>
     );
 }

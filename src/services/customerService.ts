@@ -1,0 +1,15 @@
+import type { ClientVehicle } from "../types/client";
+import type { Ratings } from "../types/ratings";
+import apiClient from "../utils/apiClient";
+
+export const customerService = {
+    getMyVehicles: async (): Promise<ClientVehicle[]> => {
+        const data = await apiClient("/client/vehicles");
+        // Devuelve el array directo, sin buscar .content
+        return Array.isArray(data) ? data : [];
+    },
+    createRating: (maintenanceJob: number, data: Ratings) => apiClient(`/client/vehicles/service-ratings/${maintenanceJob}`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+}

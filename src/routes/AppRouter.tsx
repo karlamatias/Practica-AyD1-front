@@ -17,6 +17,8 @@ import AdminOrders from "../components/pages/admin/AdminOrders";
 import ProviderOrders from "../components/pages/provider/ProviderOrders";
 import { SocketProvider } from "../hooks/useJobsSocket";
 import AdminSpecialist from "../components/pages/admin/AdminSpecialist";
+import CustomerDashboard from "../components/pages/customer/CustomerDashboard";
+import AdminPayments from "../components/pages/admin/AdminPayments";
 
 const token = localStorage.getItem("token") || "";
 
@@ -36,12 +38,14 @@ export default function AppRouter() {
           <Route path="/dashboard/admin/quotation" element={<AdminQuotation />} />
           <Route path="/dashboard/admin/orders" element={<AdminOrders />} />
           <Route path="/dashboard/admin/payment" element={<AdminPayment />} />
+          <Route path="/dashboard/admin/payments" element={<AdminPayments />} />
           <Route path="/dashboard/admin/works" element={<AdminWorks />} />
           <Route path="/dashboard/admin/reports" element={<AdminReports />} />
           <Route path="/dashboard/supplier" element={<ProviderDashboard />} />
           <Route path="/dashboard/supplier/quotation" element={<ProviderQuotation />} />
           <Route path="/dashboard/supplier/orders" element={<ProviderOrders />} />
           <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
+          <Route path="/dashboard/customer" element={<CustomerDashboard />} />
 
         </Routes>
       </Router>

@@ -1,4 +1,4 @@
-import type { Payment, PaymentDTO } from "../types/payment";
+import type { CreateInvoiceDTO, CreatePayment, Payment, PaymentDTO } from "../types/payment";
 import apiClient from "../utils/apiClient";
 
 export const paymentService = {
@@ -15,4 +15,19 @@ export const paymentService = {
         method: "PUT",
         body: JSON.stringify(data),
     }),
+    createPaymentAdmin: (data: CreatePayment) => apiClient("/invoice-requests", {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+    getAllInvoiceRequests: async () => {
+        const data = await apiClient("/invoice-requests");
+        return data || [];
+    },
+    createInvoice: async (data: CreateInvoiceDTO) => {
+        return await apiClient("/invoice", {
+            method: "POST",
+            body: JSON.stringify(data),
+        });
+    }
+    
 }
