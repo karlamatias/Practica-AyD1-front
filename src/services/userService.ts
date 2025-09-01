@@ -19,4 +19,13 @@ export const UserService = {
         body: JSON.stringify(data),
     }),
     delete: (id: number) => apiClient(`/users/${id}`, { method: "DELETE" }),
+
+    getMe: async () => {
+        const data = await apiClient("/users/me");
+        return data;
+    },
+    update2FA: (use2fa: boolean) => apiClient(`/users/me/update-info`, {
+        method: "PUT",
+        body: JSON.stringify({ use2fa }),
+    }),
 };

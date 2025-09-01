@@ -1,19 +1,17 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import Button from "../atoms/Button";
+import { sparePartService } from "../../services/sparePartService";
+import type { InventoryItem } from "../../types/intentory";
+
 
 interface UseSparePartModalProps {
     isOpen: boolean;
     onClose: () => void;
     maintenanceJobId: number;
-    onSuccess?: () => void;
+     onSuccess?: (message: string) => void;
 }
-
-const availableSpareParts = [
-    { id: 1, name: "Filtro de aceite" },
-    { id: 2, name: "Bujía" },
-    { id: 3, name: "Correa de distribución" },
-];
 
 export default function UseSparePartModal({
     isOpen,
@@ -21,28 +19,38 @@ export default function UseSparePartModal({
     maintenanceJobId,
     onSuccess,
 }: UseSparePartModalProps) {
-    const [inventoryItemId, setInventoryItemId] = useState<number>(availableSpareParts[0].id);
+    const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+    const [inventoryItemId, setInventoryItemId] = useState<number | null>(null);
     const [quantityUsed, setQuantityUsed] = useState<number>(1);
     const [loading, setLoading] = useState(false);
+
+    // Cargar repuestos al abrir modal
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const fetchInventoryItems = async () => {
+            try {
+                const items = await sparePartService.getInventoryItems();
+                setInventoryItems(items);
+                if (items.length > 0) setInventoryItemId(items[0].id);
+            } catch (err) {
+                console.error("Error cargando repuestos", err);
+                alert("No se pudieron cargar los repuestos disponibles");
+            }
+        };
+
+        fetchInventoryItems();
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
     const handleSubmit = async () => {
+        if (!inventoryItemId) return alert("Selecciona un repuesto");
+
         setLoading(true);
         try {
-            const res = await fetch("/job-item-usage", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    inventoryItemId,
-                    maintenanceJobId,
-                    quantityUsed,
-                }),
-            });
-
-            if (!res.ok) throw new Error("Error al registrar uso de repuesto");
-
-            onSuccess?.();
+            await sparePartService.useSparePart(maintenanceJobId, inventoryItemId, quantityUsed);
+            onSuccess?.("Solicitud de repuesto correcta");
             onClose();
         } catch (err) {
             console.error(err);
@@ -54,7 +62,6 @@ export default function UseSparePartModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-            {/* Fondo transparente con blur */}
             <div
                 className="absolute inset-0 bg-white/30 backdrop-blur-sm"
                 onClick={onClose}
@@ -63,17 +70,16 @@ export default function UseSparePartModal({
             <div className="relative bg-white rounded-xl p-6 w-96 shadow-lg z-10">
                 <h2 className="text-lg font-semibold mb-4">Usar repuesto</h2>
 
-                {/* Select de repuestos */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Repuesto
                     </label>
                     <select
-                        value={inventoryItemId}
+                        value={inventoryItemId ?? ""}
                         onChange={(e) => setInventoryItemId(Number(e.target.value))}
                         className="w-full border border-gray-300 rounded px-3 py-2"
                     >
-                        {availableSpareParts.map((part) => (
+                        {inventoryItems.map((part) => (
                             <option key={part.id} value={part.id}>
                                 {part.name}
                             </option>
@@ -81,7 +87,6 @@ export default function UseSparePartModal({
                     </select>
                 </div>
 
-                {/* Cantidad usada */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Cantidad usada
@@ -95,7 +100,6 @@ export default function UseSparePartModal({
                     />
                 </div>
 
-                {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
                     <Button onClick={onClose} color="secondary">
                         Cancelar

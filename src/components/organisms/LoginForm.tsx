@@ -24,12 +24,19 @@ export default function LoginForm() {
     try {
       if (step === "login") {
         const res = await login(username, password);
-        setStep("verify");
+
+        if (res.use2fa === false) {
+          // Guardar token y redirigir directo
+          localStorage.setItem("token", res.token ?? "");
+          const roleId: UserRoleId = res.user.role.id as UserRoleId;
+          navigate(roleRoutes[roleId] || "/");
+        } else {
+          // Si usa 2FA, avanzar al paso de verificación
+          setStep("verify");
+        }
 
       } else if (step === "verify") {
         const userData = await verifyCode(username, code);
-
-        // Redirección según id de rol
         const roleId: UserRoleId = userData.role.id as UserRoleId;
         navigate(roleRoutes[roleId] || "/");
       }
@@ -98,6 +105,5 @@ export default function LoginForm() {
         )}
       </form>
     </div>
-
   );
 }

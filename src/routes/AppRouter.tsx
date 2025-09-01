@@ -19,6 +19,13 @@ import { SocketProvider } from "../hooks/useJobsSocket";
 import AdminSpecialist from "../components/pages/admin/AdminSpecialist";
 import CustomerDashboard from "../components/pages/customer/CustomerDashboard";
 import AdminPayments from "../components/pages/admin/AdminPayments";
+import SpecialistDashboard from "../components/pages/specialist/SpecialistDashboard";
+import UserProfile from "../components/pages/UserProfile";
+import AdminLayout from "../components/templates/AdminLayout";
+import EmployeeLayout from "../components/templates/EmployeeLayout";
+import CustomerLayout from "../components/templates/CustomerLayout";
+import ProviderLayout from "../components/templates/ProviderLayout";
+import SpecialistLayout from "../components/templates/SpecialistLayout";
 
 const token = localStorage.getItem("token") || "";
 
@@ -46,6 +53,47 @@ export default function AppRouter() {
           <Route path="/dashboard/supplier/orders" element={<ProviderOrders />} />
           <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
           <Route path="/dashboard/customer" element={<CustomerDashboard />} />
+          <Route path="/dashboard/specialist" element={<SpecialistDashboard />} />
+          <Route
+            path="/dashboard/admin/profile"
+            element={
+              <AdminLayout>
+                <UserProfile />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/dashboard/employee/profile"
+            element={
+              <EmployeeLayout>
+                <UserProfile />
+              </EmployeeLayout>
+            }
+          />
+          <Route
+            path="/dashboard/specialist/profile"
+            element={
+              <SpecialistLayout>
+                <UserProfile />
+              </SpecialistLayout>
+            }
+          />
+          <Route
+            path="/dashboard/customer/profile"
+            element={
+              <CustomerLayout>
+                <UserProfile />
+              </CustomerLayout>
+            }
+          />
+          <Route
+            path="/dashboard/provider/profile"
+            element={
+              <ProviderLayout>
+                <UserProfile />
+              </ProviderLayout>
+            }
+          />
 
         </Routes>
       </Router>
