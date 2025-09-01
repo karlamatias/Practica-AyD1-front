@@ -1,8 +1,11 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import Button from "../../atoms/Button";
 import InputText from "../../atoms/InputText";
 import AdminLayout from "../../templates/AdminLayout";
 import ConfirmModal from "../../molecules/ConfirmModal";
+import InvoiceModal from "../../molecules/InvoiceModal";
 import type { Vehicle } from "../../../types/vehicle";
 import { vehicleService } from "../../../services/vehicleService";
 import { UserService } from "../../../services/userService";
@@ -14,6 +17,8 @@ import Alert from "../../atoms/Alert";
 import type { CreateJobDTO, Job, JobForm } from "../../../types/jobs";
 import { jobsService } from "../../../services/jobsService";
 import { useJobsSocket } from "../../../hooks/useJobsSocket";
+import { paymentService } from "../../../services/paymentService";
+import { MdPayments } from "react-icons/md";
 
 export default function AdminWorks() {
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -32,23 +37,25 @@ export default function AdminWorks() {
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
+    // NUEVOS ESTADOS PARA FACTURA
+    const [invoiceJobId, setInvoiceJobId] = useState<number | null>(null);
+    const [invoiceAmount, setInvoiceAmount] = useState<string>("");
+    const [loadingInvoice, setLoadingInvoice] = useState(false);
+
     const { subscribeToJobs } = useJobsSocket();
 
     const toBackendDate = (dateStr: string) => {
         if (!dateStr) return "";
         const d = new Date(dateStr);
-
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const dd = String(d.getDate()).padStart(2, '0');
         const hh = String(d.getHours()).padStart(2, '0');
         const min = String(d.getMinutes()).padStart(2, '0');
         const ss = String(d.getSeconds()).padStart(2, '0');
-
         const offsetHours = -6;
         const offsetSign = offsetHours >= 0 ? "+" : "-";
         const offsetStr = `${offsetSign}${String(Math.abs(offsetHours)).padStart(2, '0')}:00`;
-
         return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}${offsetStr}`;
     };
 
@@ -63,13 +70,11 @@ export default function AdminWorks() {
         return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
     };
 
-
-
+    // Cargar empleados
     useEffect(() => {
         const fetchEmployee = async () => {
             try {
                 const allUsers: Employee[] = await UserService.getEmployee();
-
                 setEmployed(allUsers);
             } catch (error: any) {
                 console.error("Error al cargar empleados:", error.message || error);
@@ -91,19 +96,7 @@ export default function AdminWorks() {
         fetchVehicles();
     }, []);
 
-    // Cargar trabajos
-    useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const alljobs = await jobsService.getAllJobs();
-                setJobs(alljobs);
-            } catch (error: any) {
-                setAlert({ type: "error", message: error.message || "No se pudieron cargar los trabajos." });
-            }
-        };
-        fetchJobs();
-    }, []);
-
+    // Cargar trabajos y suscribirse a socket
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -115,7 +108,6 @@ export default function AdminWorks() {
         };
         fetchJobs();
 
-        // Suscribirse a jobs
         const handleJobMessage = (message: any) => {
             const { action, job } = message;
             setJobs(prevJobs => {
@@ -135,14 +127,8 @@ export default function AdminWorks() {
         };
 
         const unsubscribe = subscribeToJobs(handleJobMessage);
-
-        return () => {
-            unsubscribe();
-        };
-
+        return () => unsubscribe();
     }, [subscribeToJobs]);
-
-
 
     // Detectar cambios al editar
     useEffect(() => {
@@ -153,7 +139,7 @@ export default function AdminWorks() {
     }, [form, editingId, jobs]);
 
     // Validación
-    const validateForm = (form: Omit<JobForm, "id">, isEditing: boolean): string | null => {
+    const validateForm = (form: Omit<JobForm, "id">): string | null => {
         if (!form.vehicleId) return "Debes seleccionar un vehiculo.";
         if (!form.employeeAssignedId) return "Debes seleccionar un empleado.";
         if (!form.description) return "El campo Descripción es obligatorio.";
@@ -165,14 +151,13 @@ export default function AdminWorks() {
 
     // Crear o actualizar trabajo
     const handleAddOrUpdateJob = async () => {
-        const errorMsg = validateForm(form, editingId !== null);
+        const errorMsg = validateForm(form);
         if (errorMsg) {
             setAlert({ type: "error", message: errorMsg });
             return;
         }
 
         try {
-            // Convertir fechas a formato ISO
             const payload: CreateJobDTO = {
                 vehicleId: form.vehicleId,
                 employeeAssignedId: form.employeeAssignedId,
@@ -183,7 +168,6 @@ export default function AdminWorks() {
             };
 
             let job: Job;
-
             if (editingId !== null) {
                 job = await jobsService.updateJobs(editingId, payload);
                 setJobs(jobs.map(v => v.id === editingId ? job : v));
@@ -202,8 +186,7 @@ export default function AdminWorks() {
         }
     };
 
-
-    // Eliminar vehículo
+    // Eliminar trabajo
     const handleDeleteJob = async () => {
         if (confirmDeleteId === null) return;
         try {
@@ -217,7 +200,7 @@ export default function AdminWorks() {
         }
     };
 
-    // Editar vehículo
+    // Editar trabajo
     const handleEditClick = (job: Job) => {
         setEditingId(job.id);
         setForm({
@@ -230,21 +213,40 @@ export default function AdminWorks() {
         });
     };
 
+    // Solicitud de pago
+    const handleInvoiceRequest = async () => {
+        if (invoiceJobId === null || !invoiceAmount || Number(invoiceAmount) <= 0) return;
 
-    // Función para limpiar formulario
+        setLoadingInvoice(true);
+        try {
+            await paymentService.createPaymentAdmin({
+                maintenanceJobId: invoiceJobId,
+                amount: Number(invoiceAmount),
+            });
+
+            setAlert({ type: "success", message: "Solicitud de pago enviada correctamente." });
+            setInvoiceJobId(null);
+            setInvoiceAmount("");
+        } catch (error: any) {
+            setAlert({ type: "error", message: error.message || "Error al crear solicitud de pago." });
+        } finally {
+            setLoadingInvoice(false);
+        }
+    };
+
+    // Resetear formulario
     const resetForm = () => {
         setForm({ vehicleId: 0, employeeAssignedId: 0, description: "", startDate: "", endDate: "", jobType: "" });
         setEditingId(null);
         setHasChanges(false);
     };
 
-    // Al mostrar la alerta, la cerramos automáticamente
+    // Autocierre alerta
     useEffect(() => {
         if (!alert) return;
         const timer = setTimeout(() => setAlert(null), 2000);
         return () => clearTimeout(timer);
     }, [alert]);
-
     return (
         <AdminLayout>
             <h2 className="text-2xl font-bold mb-4">Trabajos</h2>
@@ -271,7 +273,6 @@ export default function AdminWorks() {
                             onChange={selected => setForm({ ...form, vehicleId: selected?.value || 0 })}
                             placeholder="Selecciona un vehículo"
                         />
-
                     </div>
 
                     {/* Select Empleado */}
@@ -297,7 +298,7 @@ export default function AdminWorks() {
                         />
                     </div>
 
-                    {/* Select Tipo de trabajo */}
+                    {/* Tipo de trabajo */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de trabajo</label>
                         <Select
@@ -376,33 +377,25 @@ export default function AdminWorks() {
                     <tbody className="divide-y divide-gray-100">
                         {jobs.map(job => (
                             <tr key={job.id}>
-                                <td className="px-4 py-2">
-                                    {job.vehicle.brand} {job.vehicle.model} - {job.vehicle.licensePlate}
-                                </td>
-                                <td className="px-4 py-2">
-                                    {job.employeeAssigned.user.firstname} {job.employeeAssigned.user.lastname} - {job.employeeAssigned.specialization?.name || "Sin especialización"}
-                                </td>
+                                <td className="px-4 py-2">{job.vehicle.brand} {job.vehicle.model} - {job.vehicle.licensePlate}</td>
+                                <td className="px-4 py-2">{job.employeeAssigned.user.firstname} {job.employeeAssigned.user.lastname} - {job.employeeAssigned.specialization?.name || "Sin especialización"}</td>
                                 <td className="px-4 py-2">{job.jobType}</td>
                                 <td className="px-4 py-2">{job.description}</td>
                                 <td className="px-4 py-2">{job.startDate}</td>
                                 <td className="px-4 py-2">{job.endDate}</td>
                                 <td className="px-4 py-2">{job.status}</td>
                                 <td className="px-4 py-2 text-center flex justify-center gap-2">
-                                    <button
-                                        onClick={() => handleEditClick(job)}
-                                        className="p-1 rounded hover:bg-yellow-200 text-yellow-600"
-                                        title="Editar"
-                                    >
+                                    <button onClick={() => handleEditClick(job)} className="p-1 rounded hover:bg-yellow-200 text-yellow-600" title="Editar">
                                         <FiEdit size={18} />
                                     </button>
-                                    <button
-                                        onClick={() => setConfirmDeleteId(job.id)}
-                                        className="p-1 rounded hover:bg-red-200 text-red-600"
-                                        title="Eliminar"
-                                    >
+                                    <button onClick={() => setConfirmDeleteId(job.id)} className="p-1 rounded hover:bg-red-200 text-red-600" title="Eliminar">
                                         <FiTrash2 size={18} />
                                     </button>
-
+                                    {job.status === "COMPLETED" && (
+                                        <button onClick={() => setInvoiceJobId(job.id)} className="p-1 rounded hover:bg-green-200 text-green-600" title="Solicitar pago">
+                                            <MdPayments size={18} />
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -420,6 +413,16 @@ export default function AdminWorks() {
                     onCancel={() => setConfirmDeleteId(null)}
                 />
             )}
+
+            {/* MODAL DE SOLICITUD DE PAGO */}
+            <InvoiceModal
+                isOpen={invoiceJobId !== null}
+                amount={invoiceAmount}
+                setAmount={setInvoiceAmount}
+                onClose={() => setInvoiceJobId(null)}
+                onSubmit={handleInvoiceRequest}
+                loading={loadingInvoice}
+            />
         </AdminLayout>
     );
 }

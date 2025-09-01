@@ -23,7 +23,8 @@ export default function Sidebar({ role }: SidebarProps) {
             { name: "Cotizaciones", path: "/dashboard/admin/quotation", icon: <FaFileInvoice /> },
             { name: "Ordenes", path: "/dashboard/admin/orders", icon: <FiList /> },
             { name: "Metodos de Pago", path: "/dashboard/admin/payment", icon: <FaMoneyBillWave /> },
-            { name: "Inventario", path: "/dashboard/admin/inventory", icon: <HiCube /> },
+            { name: "Inventario", path: "/dashboard/admin/inventory", icon: <FaMoneyBillWave /> },
+            { name: "Pagos", path: "/dashboard/admin/payments", icon: <HiCube /> },
             { name: "Trabajos", path: "/dashboard/admin/works", icon: <HiWrench /> },
             { name: "Reportes", path: "/dashboard/admin/reports", icon: <HiChartBar /> },
         ],
@@ -36,11 +37,10 @@ export default function Sidebar({ role }: SidebarProps) {
         ],
         Cliente: [
             { name: "Dashboard", path: "/dashboard/customer", icon: <HiHome /> },
-            { name: "Servicios", path: "/dashboard/customer/services", icon: <HiWrench /> },
         ],
         Proveedor: [
             { name: "Cotizaciones", path: "/dashboard/supplier/quotation", icon: <FaFileInvoice /> },
-             { name: "Ordenes", path: "/dashboard/supplier/orders", icon: <FiList /> },
+            { name: "Ordenes", path: "/dashboard/supplier/orders", icon: <FiList /> },
         ],
     };
 

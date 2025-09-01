@@ -27,4 +27,5 @@ export const jobsService = {
             method: "PUT",
             body: JSON.stringify({ status }),
         }),
+    
 }

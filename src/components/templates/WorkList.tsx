@@ -32,7 +32,6 @@ export default function WorkList({
                     onFinish={onFinish}
                     onReportDamage={onReportDamage}
                     onRequestSupport={onRequestSupport}
-                    onUseSparePart={onUseSparePart}
                     onNotifyMaintenance={onNotifyMaintenance}
                     onRegister={() => onRegister?.(work)}
                 />
