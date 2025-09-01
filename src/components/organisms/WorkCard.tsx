@@ -4,7 +4,7 @@ import WorkInfo from "../molecules/WorkInfo";
 import Button from "../atoms/Button";
 import UseSparePartModal from "../molecules/UseSparePartModal";
 import RequestSupportModal from "../molecules/RequestSupportModal";
-import Alert from "../atoms/Alert"; 
+import Alert from "../atoms/Alert";
 import type { Work } from "../../types/works";
 import {
     FiPlay,
@@ -19,7 +19,7 @@ interface WorkCardProps extends Work {
     onStart?: (id: number) => void;
     onFinish?: (id: number) => void;
     onReportDamage?: (id: number) => void;
-    onRequestSupport?: (id: number, description: string) => void;
+    onRequestSupport?: (id: number) => void;
     onNotifyMaintenance?: (id: number) => void;
     onRegister?: (work: Work) => void;
 }
@@ -50,7 +50,7 @@ export default function WorkCard({
     const handleShowAlert = (message: string, type: "success" | "error" = "success") => {
         setAlertMessage(message);
         setAlertType(type);
-        setTimeout(() => setAlertMessage(null), 5000); // desaparece después de 5s
+        setTimeout(() => setAlertMessage(null), 5000);
     };
 
     return (
@@ -79,27 +79,74 @@ export default function WorkCard({
 
             <div className="flex flex-col justify-center md:items-end gap-2">
                 <div className="flex flex-wrap gap-2">
-                    <Button onClick={() => onStart?.(id)} color="primary" icon={<FiPlay className="w-4 h-4" />} className="px-3 py-1 text-sm" disabled={!isAssigned}>
+                    <Button
+                        onClick={() => onStart?.(id)}
+                        color="primary"
+                        icon={<FiPlay className="w-4 h-4" />}
+                        className="px-3 py-1 text-sm"
+                        disabled={!isAssigned}
+                    >
                         {isAssigned ? "Iniciar" : status}
                     </Button>
-                    <Button onClick={() => onFinish?.(id)} color="success" icon={<FiCheck className="w-4 h-4" />} className="px-3 py-1 text-sm" disabled={!isInProgress}>
+                    <Button
+                        onClick={() => onFinish?.(id)}
+                        color="success"
+                        icon={<FiCheck className="w-4 h-4" />}
+                        className="px-3 py-1 text-sm"
+                        disabled={!isInProgress}
+                    >
                         Finalizar
                     </Button>
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-2">
                     {onReportDamage && (
-                        <Button onClick={() => onReportDamage(id)} color="yellow" icon={<FiAlertTriangle className="w-5 h-5" />} className="p-2 rounded-full" title="Reportar daños" disabled={isFinished || !isAssigned}/>
+                        <Button
+                            onClick={() => onReportDamage(id)}
+                            color="yellow"
+                            icon={<FiAlertTriangle className="w-5 h-5" />}
+                            className="p-2 rounded-full"
+                            title="Reportar daños"
+                            disabled={isFinished}
+                        />
                     )}
                     {onRequestSupport && (
-                        <Button onClick={() => setShowSupportModal(true)} color="purple" icon={<FiUsers className="w-5 h-5" />} className="p-2 rounded-full" title="Solicitar apoyo" disabled={isFinished || !isAssigned}/>
+                        <Button
+                            onClick={() => setShowSupportModal(true)}
+                            color="purple"
+                            icon={<FiUsers className="w-5 h-5" />}
+                            className="p-2 rounded-full"
+                            title="Solicitar apoyo"
+                            disabled={isFinished}
+                        />
                     )}
-                    <Button onClick={() => setShowSpareModal(true)} color="indigo" icon={<FiTool className="w-5 h-5" />} className="p-2 rounded-full" title="Usar repuesto" disabled={isFinished || !isAssigned} />
+                    <Button
+                        onClick={() => setShowSpareModal(true)}
+                        color="indigo"
+                        icon={<FiTool className="w-5 h-5" />}
+                        className="p-2 rounded-full"
+                        title="Usar repuesto"
+                        disabled={isFinished}
+                    />
                     {onNotifyMaintenance && (
-                        <Button onClick={() => onNotifyMaintenance(id)} color="orange" icon={<FiSettings className="w-5 h-5" />} className="p-2 rounded-full" title="Notificar mantenimiento" disabled={isFinished || !isAssigned} />
+                        <Button
+                            onClick={() => onNotifyMaintenance(id)}
+                            color="orange"
+                            icon={<FiSettings className="w-5 h-5" />}
+                            className="p-2 rounded-full"
+                            title="Notificar mantenimiento"
+                            disabled={isFinished}
+                        />
                     )}
                     {onRegister && (
-                        <Button onClick={() => onRegister({ id, vehicle, type, status, estimatedTime, observations })} color="secondary" icon={<FiCheck className="w-5 h-5" />} className="p-2 rounded-full" title="Registrar progreso" disabled={isFinished || !isAssigned} />
+                        <Button
+                            onClick={() => onRegister({ id, vehicle, type, status, estimatedTime, observations })}
+                            color="secondary"
+                            icon={<FiCheck className="w-5 h-5" />}
+                            className="p-2 rounded-full"
+                            title="Registrar progreso"
+                            disabled={isFinished}
+                        />
                     )}
                 </div>
             </div>

@@ -353,12 +353,12 @@ export default function AdminQuotation() {
                                             <ul className="list-disc pl-4">
                                                 {q.items.map((item: any) => (
                                                     <li key={item.id}>
-                                                        {item.name} ({item.quantity}) - ${item.unitPrice}
+                                                        {item.name} ({item.quantity}) - Q{item.unitPrice}
                                                     </li>
                                                 ))}
                                             </ul>
                                         </td>
-                                        <td className="px-4 py-2">${q.total}</td>
+                                        <td className="px-4 py-2">Q{q.total}</td>
                                         <td className="px-4 py-2">{q.status}</td>
                                         <td className="px-4 py-2 flex gap-2">
                                             <Button

@@ -32,21 +32,21 @@ export default function Sidebar({ role }: SidebarProps) {
         ],
         Empleado: [
             { name: "Dashboard", path: "/dashboard/employee", icon: <HiHome /> },
+            { name: "Trabajos", path: "/dashboard/employee/jobs", icon: <HiWrench /> },
             { name: "Perfil", path: "/dashboard/employee/profile", icon: <FaUserCog /> },
         ],
         Especialista: [
             { name: "Dashboard", path: "/dashboard/specialist", icon: <HiHome /> },
-            { name: "Trabajos", path: "/dashboard/specialist/works", icon: <HiWrench /> },
-             { name: "Perfil", path: "/dashboard/specialist/profile", icon: <FaUserCog /> },
+            { name: "Perfil", path: "/dashboard/specialist/profile", icon: <FaUserCog /> },
         ],
         Cliente: [
             { name: "Dashboard", path: "/dashboard/customer", icon: <HiHome /> },
-             { name: "Perfil", path: "/dashboard/customer/profile", icon: <FaUserCog /> },
+            { name: "Perfil", path: "/dashboard/customer/profile", icon: <FaUserCog /> },
         ],
         Proveedor: [
             { name: "Cotizaciones", path: "/dashboard/supplier/quotation", icon: <FaFileInvoice /> },
             { name: "Ordenes", path: "/dashboard/supplier/orders", icon: <FiList /> },
-             { name: "Perfil", path: "/dashboard/provider/profile", icon: <FaUserCog /> },
+            { name: "Perfil", path: "/dashboard/provider/profile", icon: <FaUserCog /> },
         ],
     };
 
