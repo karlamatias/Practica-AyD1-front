@@ -37,10 +37,12 @@ export default function AdminWorks() {
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-    // NUEVOS ESTADOS PARA FACTURA
     const [invoiceJobId, setInvoiceJobId] = useState<number | null>(null);
     const [invoiceAmount, setInvoiceAmount] = useState<string>("");
     const [loadingInvoice, setLoadingInvoice] = useState(false);
+
+    const [progressMap, setProgressMap] = useState<Record<number, { notes: string; hoursWorked: number } | null>>({});
+
 
     const { subscribeToJobs } = useJobsSocket();
 
@@ -247,6 +249,28 @@ export default function AdminWorks() {
         const timer = setTimeout(() => setAlert(null), 2000);
         return () => clearTimeout(timer);
     }, [alert]);
+
+    // Cargar progreso
+    const fetchProgress = async (jobId: number) => {
+        try {
+            const progressResponse = await jobsService.getJobProgress(jobId);
+            const progressItem = progressResponse?.content?.[0] ?? null;
+            setProgressMap(prev => ({
+                ...prev,
+                [jobId]: progressItem
+                    ? { notes: progressItem.notes, hoursWorked: progressItem.hoursWorked }
+                    : null
+            }));
+        } catch (err) {
+            console.error("Error al cargar progreso del trabajo", err);
+            setProgressMap(prev => ({ ...prev, [jobId]: null }));
+        }
+    };
+
+    useEffect(() => {
+        jobs.forEach(job => fetchProgress(job.id));
+    }, [jobs]);
+
     return (
         <AdminLayout>
             <h2 className="text-2xl font-bold mb-4">Trabajos</h2>
@@ -371,6 +395,7 @@ export default function AdminWorks() {
                             <th className="px-4 py-2 text-left">Inicio</th>
                             <th className="px-4 py-2 text-left">Fin</th>
                             <th className="px-4 py-2 text-left">Estado</th>
+                            <th className="px-4 py-2 text-left">Progreso</th>
                             <th className="px-4 py-2 text-left">Acciones</th>
                         </tr>
                     </thead>
@@ -384,6 +409,11 @@ export default function AdminWorks() {
                                 <td className="px-4 py-2">{job.startDate}</td>
                                 <td className="px-4 py-2">{job.endDate}</td>
                                 <td className="px-4 py-2">{job.status}</td>
+                                <td className="px-4 py-2">
+                                    {progressMap[job.id]
+                                        ? `${progressMap[job.id]?.notes} (${progressMap[job.id]?.hoursWorked}h)`
+                                        : "Sin progreso"}
+                                </td>
                                 <td className="px-4 py-2 text-center flex justify-center gap-2">
                                     <button onClick={() => handleEditClick(job)} className="p-1 rounded hover:bg-yellow-200 text-yellow-600" title="Editar">
                                         <FiEdit size={18} />

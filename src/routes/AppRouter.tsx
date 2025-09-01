@@ -26,6 +26,7 @@ import EmployeeLayout from "../components/templates/EmployeeLayout";
 import CustomerLayout from "../components/templates/CustomerLayout";
 import ProviderLayout from "../components/templates/ProviderLayout";
 import SpecialistLayout from "../components/templates/SpecialistLayout";
+import EmployeeJobs from "../components/pages/employee/EmployeeJobs";
 
 const token = localStorage.getItem("token") || "";
 
@@ -52,6 +53,7 @@ export default function AppRouter() {
           <Route path="/dashboard/supplier/quotation" element={<ProviderQuotation />} />
           <Route path="/dashboard/supplier/orders" element={<ProviderOrders />} />
           <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
+          <Route path="/dashboard/employee/jobs" element={<EmployeeJobs />} />
           <Route path="/dashboard/customer" element={<CustomerDashboard />} />
           <Route path="/dashboard/specialist" element={<SpecialistDashboard />} />
           <Route

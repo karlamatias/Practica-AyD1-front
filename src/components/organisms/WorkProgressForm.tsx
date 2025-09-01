@@ -1,42 +1,77 @@
+"use client";
+
 import InputText from "../atoms/InputText";
 import Button from "../atoms/Button";
-import { useState } from "react";
-import type { Work } from "../../types/works";
+import { useState, useEffect } from "react";
+
 import { jobsService } from "../../services/jobsService";
 import Alert from "../atoms/Alert";
+import type { WorkWithProgress } from "../pages/employee/EmployeeJobs";
 
 interface Props {
-    work: Work;
-    onSave: (updatedWork: Work) => void;
+    work: WorkWithProgress;
+    onSave: (updatedProgress: WorkWithProgress["progress"]) => void;
+    onDelete?: () => void;
     onCancel: () => void;
 }
 
-export default function WorkProgressForm({ work, onSave, onCancel }: Props) {
-    const [observations, setObservations] = useState("");
-    const [hoursWorked, setHoursWorked] = useState<string>("");
+export default function WorkProgressForm({ work, onSave, onDelete, onCancel }: Props) {
+    const [observations, setObservations] = useState(work.progress?.notes || "");
+    const [hoursWorked, setHoursWorked] = useState<string>(
+        work.progress?.hoursWorked.toString() || ""
+    );
     const [loading, setLoading] = useState(false);
 
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+    // Sincronizar inputs si cambia el progreso desde afuera
+    useEffect(() => {
+        setObservations(work.progress?.notes || "");
+        setHoursWorked(work.progress?.hoursWorked.toString() || "");
+    }, [work.progress]);
+
+    // Guardar o actualizar progreso
     const handleSave = async () => {
         setLoading(true);
         try {
             const hours = Number(hoursWorked) || 0;
 
-            await jobsService.registerProgress({
-                maintenanceJobId: work.id,
-                notes: observations,
-                hoursWorked: hours,
-            });
+            let updatedProgress;
+            if (work.progress) {
+                // PUT /job-progress/{id}
+                updatedProgress = await jobsService.updateJobProgress(work.progress.id, {
+                    notes: observations,
+                    hoursWorked: hours,
+                });
+            } else {
+                // POST /job-progress/{maintenanceJobId}
+                updatedProgress = await jobsService.registerProgress({
+                    maintenanceJobId: work.id,
+                    notes: observations,
+                    hoursWorked: hours,
+                });
+            }
 
-            onSave({ ...work, observations, estimatedTime: `${hours}h` });
-
-            setAlert({ type: "success", message: "Progreso registrado correctamente" });
-            setObservations("");
-            setHoursWorked("");
+            onSave(updatedProgress);
+            setAlert({ type: "success", message: "Progreso guardado correctamente" });
         } catch (err) {
             console.error("Error al registrar progreso", err);
-            setAlert({ type: "error", message: "No se pudo registrar el progreso" });
+            setAlert({ type: "error", message: "No se pudo guardar el progreso" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!work.progress || !onDelete) return;
+        setLoading(true);
+        try {
+            await jobsService.deleteJobProgress(work.progress.id);
+            onDelete();
+            setAlert({ type: "success", message: "Progreso eliminado correctamente" });
+        } catch (err) {
+            console.error("Error al eliminar progreso", err);
+            setAlert({ type: "error", message: "No se pudo eliminar el progreso" });
         } finally {
             setLoading(false);
         }
@@ -44,7 +79,7 @@ export default function WorkProgressForm({ work, onSave, onCancel }: Props) {
 
     return (
         <div className="bg-white p-4 rounded shadow mb-6">
-            <h3 className="font-semibold mb-2">Registrar Avance - {work.vehicle}</h3>
+            <h3 className="font-semibold mb-2">Avance de trabajo - {work.vehicle}</h3>
 
             {alert && (
                 <Alert
@@ -70,8 +105,13 @@ export default function WorkProgressForm({ work, onSave, onCancel }: Props) {
 
                 <div className="col-span-1 mt-2 flex gap-2">
                     <Button onClick={handleSave} disabled={loading}>
-                        {loading ? "Guardando..." : "Guardar"}
+                        {loading ? "Guardando..." : work.progress ? "Actualizar" : "Guardar"}
                     </Button>
+                    {work.progress && onDelete && (
+                        <Button onClick={handleDelete} disabled={loading}>
+                            {loading ? "Eliminando..." : "Eliminar"}
+                        </Button>
+                    )}
                     <Button onClick={onCancel} variant="secondary">
                         Cancelar
                     </Button>
