@@ -22,6 +22,7 @@ interface PaymentMethod {
 
 interface ClientWorkCardProps extends ClientJob {
   vehicle: string;
+  parentJob: any;
   onApproveService?: (
     workId: number,
     approveType: string,
@@ -38,6 +39,7 @@ interface ClientWorkCardProps extends ClientJob {
 
 export default function ClientWorkCard({
   id,
+  parentJob,
   vehicle,
   jobType,
   status,
@@ -149,6 +151,13 @@ export default function ClientWorkCard({
               setShowAlert(false);
             },
           })}
+        {parentJob && parentJob.id && (
+          <p className="mt-2 text-sm text-blue-700 bg-blue-100 border-l-4 border-blue-500 pl-3 py-1 rounded-md flex items-center gap-2">
+            <span className="text-blue-500 font-bold">↳</span>
+            Este trabajo es derivado de:{" "}
+            <span className="font-semibold">{parentJob.description}</span>
+          </p>
+        )}
       </div>
 
       <div className="flex gap-1 md:flex-col md:gap-1 ml-3">
