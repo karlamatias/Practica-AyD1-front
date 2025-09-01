@@ -38,13 +38,12 @@ export default function WorkProgressForm({ work, onSave, onDelete, onCancel }: P
 
             let updatedProgress;
             if (work.progress) {
-                // PUT /job-progress/{id}
                 updatedProgress = await jobsService.updateJobProgress(work.progress.id, {
                     notes: observations,
                     hoursWorked: hours,
                 });
             } else {
-                // POST /job-progress/{maintenanceJobId}
+
                 updatedProgress = await jobsService.registerProgress({
                     maintenanceJobId: work.id,
                     notes: observations,
