@@ -17,4 +17,15 @@ export const customerService = {
     apiClient(`/invoice-requests/maintenance-job/${maintenanceJob}`, {
       method: "GET",
     }),
+
+  getApprovalByMaintenaceJob: (maintenanceJob: number) =>
+    apiClient(`/client/approval_requests/maitenance_job/${maintenanceJob}`, {
+      method: "GET",
+    }),
+
+  approveRequest: (requestId: number, data: any) =>
+    apiClient(`/client/approval_requests/change_status/${requestId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
 };

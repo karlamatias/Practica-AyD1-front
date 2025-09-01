@@ -22,7 +22,11 @@ interface PaymentMethod {
 
 interface ClientWorkCardProps extends ClientJob {
   vehicle: string;
-  onApproveService?: (workId: number) => void;
+  onApproveService?: (
+    workId: number,
+    approveType: string,
+    comment: string
+  ) => void;
   onLeaveReview?: (rating: number, workId: number, comment: string) => void;
   onMakePayment?: (
     workId: number,
@@ -45,12 +49,19 @@ export default function ClientWorkCard({
 }: ClientWorkCardProps) {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [requestApproveData, setRequestApproveData] = useState<any>();
+  const [approveComment, setApproveComment] = useState("");
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     number | null
   >(null);
+
+  const [selectedTypeApprove, setSelectedTypeApprove] = useState<string | null>(
+    null
+  );
   const [paymentAmount, setPaymentAmount] = useState<string>("");
   const [InvoiceRequest, setInvoiceRequest] = useState<any>();
   const [showAlert, setShowAlert] = useState(false);
@@ -101,6 +112,23 @@ export default function ClientWorkCard({
       setShowAlert(true);
     }
   };
+
+  const onHandleApprove = async () => {
+    const approvalRequest = await customerService.getApprovalByMaintenaceJob(
+      id
+    );
+    if (
+      approvalRequest &&
+      approvalRequest[0] &&
+      approvalRequest[0].status == "PENDING"
+    ) {
+      setRequestApproveData(approvalRequest[0]);
+      setShowApproveModal(true);
+    } else {
+      setMessageAlert("No tienes aprobaciones pendientes");
+      setShowAlert(true);
+    }
+  };
   return (
     <div className="flex justify-between items-center p-3 mb-2 bg-white rounded-lg shadow-sm border border-gray-200 max-w-xl mx-auto">
       <div className="flex-1 min-w-0">
@@ -126,7 +154,7 @@ export default function ClientWorkCard({
       <div className="flex gap-1 md:flex-col md:gap-1 ml-3">
         {onApproveService && (
           <Button
-            onClick={() => onApproveService(id)}
+            onClick={() => onHandleApprove()}
             color="green"
             icon={<FiThumbsUp className="w-4 h-4" />}
             className="p-1 rounded-full"
@@ -218,7 +246,7 @@ export default function ClientWorkCard({
             <section className="bg-gray-50 rounded-lg p-3">
               <h4 className="text-md font-semibold mb-2">Pagos realizados:</h4>
               <ul className="space-y-2">
-                {InvoiceRequest.invoices.map((item, index) => (
+                {InvoiceRequest.invoices.map((item: any, index) => (
                   <li
                     key={index}
                     className="border-b border-gray-200 pb-2 last:border-0"
@@ -272,11 +300,69 @@ export default function ClientWorkCard({
               if (isNaN(amount) || amount <= 0)
                 return alert("Ingresa un monto válido");
               onMakePayment?.(InvoiceRequest.id, amount, selectedPaymentMethod);
+              setInvoiceRequest(null);
               setShowPaymentModal(false);
               setPaymentAmount("");
             }}
           >
             Pagar
+          </Button>
+        </Modal>
+      )}
+
+      {showApproveModal && (
+        <Modal onClose={() => setShowApproveModal(false)}>
+          <header>
+            <h3 className="text-xl font-bold mb-2">
+              Aprovar servicio correctivo de {vehicle}
+            </h3>
+            <p className="text-gray-700">
+              <span className="font-semibold">Solicitud:</span>
+              {requestApproveData?.approvalRequest}
+            </p>
+            <p className="text-gray-700">
+              <span className="font-semibold">Fecha de solicitud:</span>{" "}
+              {new Date(
+                requestApproveData?.approvalCreatedAt
+              ).toLocaleDateString()}
+            </p>
+          </header>
+          <br />
+          <label className="block text-sm mb-1">Opcion: </label>
+          <select
+            className="w-full border p-2 rounded mb-3"
+            value={selectedTypeApprove ?? ""}
+            onChange={(e) => setSelectedTypeApprove(e.target.value)}
+          >
+            <option value={"APPROVED"}>APROBAR</option>
+            <option value={"REJECTED"}>RECHAZAR</option>
+          </select>
+
+          <label className="block text-sm mb-1">Comentario (opcional)</label>
+          <textarea
+            value={approveComment}
+            onChange={(e) => setApproveComment(e.target.value)}
+            className="w-full border border-gray-300 p-2 rounded mb-3 text-sm"
+            placeholder="Comentario (opcional)"
+          />
+          <Button
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+            onClick={() => {
+              if (!selectedTypeApprove)
+                return alert("Selecciona una opcion de pago");
+              if (onApproveService) {
+                onApproveService(
+                  requestApproveData.approvalId,
+                  selectedTypeApprove,
+                  approveComment
+                );
+              }
+
+              setShowApproveModal(false);
+              setRequestApproveData(null);
+            }}
+          >
+            Enviar
           </Button>
         </Modal>
       )}

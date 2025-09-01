@@ -25,8 +25,19 @@ export default function ClientDashboard() {
     fetchVehicles();
   }, []);
 
-  const handleApproveService = async (workId: number) => {
-    alert("Servicio aprobado: " + workId);
+  const handleApproveService = async (
+    approveRequestId: number,
+    approveType: string,
+    comment: string
+  ) => {
+    const dataBody = {
+      comment,
+      status: approveType,
+    };
+    customerService.approveRequest(approveRequestId, dataBody);
+    alert(`Aprobacion actualizada`);
+    const data = await customerService.getMyVehicles();
+    setVehicles(data);
   };
 
   const handleLeaveReview = async (
