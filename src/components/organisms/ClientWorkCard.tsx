@@ -21,6 +21,7 @@ interface PaymentMethod {
 }
 
 interface ClientWorkCardProps extends ClientJob {
+
     vehicle: string;
     progress?: { notes: string; hoursWorked: number } | null; // <-- nueva prop
     onApproveService?: (
@@ -35,21 +36,36 @@ interface ClientWorkCardProps extends ClientJob {
         paymentMethodId: number
     ) => void;
     onDownloadInvoice?: (workId: number) => void;
+  vehicle: string;
+  parentJob: any;
+  onApproveService?: (
+    workId: number,
+    approveType: string,
+    comment: string
+  ) => void;
+  onLeaveReview?: (rating: number, workId: number, comment: string) => void;
+  onMakePayment?: (
+    workId: number,
+    amount: number,
+    paymentMethodId: number
+  ) => void;
+  onDownloadInvoice?: (workId: number) => void;
 }
 
 
 
 export default function ClientWorkCard({
-    id,
-    vehicle,
-    jobType,
-    status,
-    description,
-    progress,
-    onApproveService,
-    onLeaveReview,
-    onMakePayment,
-    onDownloadInvoice,
+
+  id,
+  parentJob,
+  vehicle,
+  jobType,
+  status,
+  description,
+  onApproveService,
+  onLeaveReview,
+  onMakePayment,
+  onDownloadInvoice,
 }: ClientWorkCardProps) {
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -161,6 +177,58 @@ export default function ClientWorkCard({
                         },
                     })}
             </div>
+        setShowAlert(true);
+      }
+    } else {
+      setMessageAlert("No tienes pagos pendientes");
+      setShowAlert(true);
+    }
+  };
+
+  const onHandleApprove = async () => {
+    const approvalRequest = await customerService.getApprovalByMaintenaceJob(
+      id
+    );
+    if (
+      approvalRequest &&
+      approvalRequest[0] &&
+      approvalRequest[0].status == "PENDING"
+    ) {
+      setRequestApproveData(approvalRequest[0]);
+      setShowApproveModal(true);
+    } else {
+      setMessageAlert("No tienes aprobaciones pendientes");
+      setShowAlert(true);
+    }
+  };
+  return (
+    <div className="flex justify-between items-center p-3 mb-2 bg-white rounded-lg shadow-sm border border-gray-200 max-w-xl mx-auto">
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-gray-800 text-sm truncate">
+          {vehicle}
+        </p>
+        <p className="text-gray-600 text-xs">
+          {typeLabel} - {statusLabel}
+        </p>
+        {description && (
+          <p className="text-gray-500 italic text-xs truncate">{description}</p>
+        )}
+        {showAlert &&
+          Alert({
+            type: "error",
+            message: messageAlert,
+            onClose() {
+              setShowAlert(false);
+            },
+          })}
+        {parentJob && parentJob.id && (
+          <p className="mt-2 text-sm text-blue-700 bg-blue-100 border-l-4 border-blue-500 pl-3 py-1 rounded-md flex items-center gap-2">
+            <span className="text-blue-500 font-bold">↳</span>
+            Este trabajo es derivado de:{" "}
+            <span className="font-semibold">{parentJob.description}</span>
+          </p>
+        )}
+      </div>
 
             <div className="flex gap-1 md:flex-col md:gap-1 ml-3">
                 {onApproveService && (

@@ -1,6 +1,5 @@
 import type { ClientJob } from "../../types/client";
 import ClientWorkCard from "../organisms/ClientWorkCard";
-
 interface ClientWorkListProps {
     works: ClientJob[];
     vehicle: string;
@@ -28,20 +27,23 @@ export default function ClientWorkList({
     onMakePayment,
     onDownloadInvoice,
 }: ClientWorkListProps) {
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {works.map((job) => (
-                <ClientWorkCard
-                    key={job.id}
-                    {...job}
-                    vehicle={vehicle}
-                    progress={progressMap?.[job.id] || null} 
-                    onApproveService={onApproveService}
-                    onLeaveReview={onLeaveReview}
-                    onMakePayment={onMakePayment}
-                    onDownloadInvoice={onDownloadInvoice}
-                />
-            ))}
-        </div>
-    );
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {works.map((job) => (
+        <>
+          <ClientWorkCard
+            key={job.id}
+            {...job}
+            parentJob={job.parentJob}
+            vehicle={vehicle}
+            onApproveService={onApproveService}
+            onLeaveReview={onLeaveReview}
+            onMakePayment={onMakePayment}
+            onDownloadInvoice={onDownloadInvoice}
+          />
+        </>
+      ))}
+    </div>
+  );
 }
