@@ -15,4 +15,10 @@ export const SpecializationService = {
         body: JSON.stringify(data),
     }),
     deleteSpecializations: (id: number) => apiClient(`/specializations/${id}`, { method: "DELETE" }),
+
+    useSparePart: (maintenanceJobId: number, description: string) =>
+        apiClient("/job-advice", {
+            method: "POST",
+            body: JSON.stringify({ maintenanceJobId, description}),
+        }),
 };

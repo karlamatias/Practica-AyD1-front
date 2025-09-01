@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { UserRoleId } from "../../../constants/roles";
 import { UserService } from "../../../services/userService";
 import { providerService } from "../../../services/providerService";
+import { SpecializationService } from "../../../services/specializationService";
 import Button from "../../atoms/Button";
 import InputText from "../../atoms/InputText";
 import Alert from "../../atoms/Alert";
@@ -10,16 +11,12 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import ConfirmModal from "../../molecules/ConfirmModal";
 import { FaPlus, FaSave } from "react-icons/fa";
 import type { CreateUserDTO, User } from "../../../types/user";
-import { SpecializationService } from "../../../services/specializationService";
 import type { Specialization } from "../../../types/specialization";
 
 export default function AdminUsers() {
     const [users, setUsers] = useState<User[]>([]);
     const [suppliers, setSuppliers] = useState<User[]>([]);
-    const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(null);
     const [specializations, setSpecializations] = useState<Specialization[]>([]);
-    const [selectedSpecializationId, setSelectedSpecializationId] = useState<number | null>(null);
-
     const [form, setForm] = useState<Omit<User, "id">>({
         firstname: "",
         lastname: "",
@@ -44,9 +41,8 @@ export default function AdminUsers() {
         if (!form.phoneNumber) return "El campo Teléfono es obligatorio.";
         if (!form.password && !isEditing) return "El campo Contraseña es obligatorio para un nuevo usuario.";
         if (!form.roleId) return "El campo Rol es obligatorio.";
-        if (Number(form.roleId) === UserRoleId.SUPPLIER && !selectedSupplierId) return "Debes seleccionar un proveedor.";
-        if (Number(form.roleId) === UserRoleId.SPECIALIST && !selectedSpecializationId)
-            return "Debes seleccionar una especialidad.";
+        if (Number(form.roleId) === UserRoleId.SUPPLIER && !form.providerId) return "Debes seleccionar un proveedor.";
+        if (Number(form.roleId) === UserRoleId.SPECIALIST && !form.specializationId) return "Debes seleccionar una especialidad.";
         return null;
     };
 
@@ -76,7 +72,7 @@ export default function AdminUsers() {
         fetchSuppliers();
     }, []);
 
-    //cargar especialidades
+    // Cargar especialidades
     useEffect(() => {
         const fetchSpecializations = async () => {
             try {
@@ -106,19 +102,9 @@ export default function AdminUsers() {
         }
 
         try {
-            const payload: Omit<User, "id"> = {
-                ...form,
-                // Solo incluir providerId si el rol es proveedor y hay un proveedor seleccionado
-                ...(Number(form.roleId) === UserRoleId.SUPPLIER && selectedSupplierId !== null
-                    ? { providerId: selectedSupplierId }
-                    : {}),
-                ...(Number(form.roleId) === UserRoleId.SPECIALIST && selectedSpecializationId !== null
-                    ? { specializationId: selectedSpecializationId }
-                    : {})
-            };
+            const payload: Omit<User, "id"> = { ...form };
 
             let user: User;
-
             if (editingId !== null) {
                 if (!payload.password) delete payload.password;
                 user = await UserService.update(editingId, payload);
@@ -133,9 +119,7 @@ export default function AdminUsers() {
         } catch (error: any) {
             setAlert({ type: "error", message: error.message || "Ocurrió un error." });
         } finally {
-            setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0, specializationId: 0 });
-            setSelectedSupplierId(null);
-            setHasChanges(false);
+            resetForm();
         }
     };
 
@@ -161,16 +145,13 @@ export default function AdminUsers() {
             phoneNumber: user.phoneNumber,
             password: "",
             roleId: user.role?.id || UserRoleId.EMPLOYEE,
-            providerId: 0,
+            providerId: user.providerId || 0,
             specializationId: user.specializationId || 0,
         });
-        setSelectedSupplierId(user.providerId || null);
-        setSelectedSpecializationId(user.specializationId || null);
     };
 
     const resetForm = () => {
         setForm({ firstname: "", lastname: "", email: "", phoneNumber: "", password: "", roleId: UserRoleId.EMPLOYEE, providerId: 0, specializationId: 0 });
-        setSelectedSupplierId(null);
         setEditingId(null);
         setHasChanges(false);
     };
@@ -202,8 +183,7 @@ export default function AdminUsers() {
                         value={form.roleId}
                         onChange={e => {
                             const roleId = Number(e.target.value);
-                            setForm({ ...form, roleId });
-                            if (roleId !== UserRoleId.SUPPLIER) setSelectedSupplierId(null);
+                            setForm({ ...form, roleId, providerId: 0, specializationId: 0 });
                         }}
                         className="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                     >
@@ -238,8 +218,8 @@ export default function AdminUsers() {
                         <div className="md:col-span-2 mt-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Proveedor asociado</label>
                             <select
-                                value={selectedSupplierId || ""}
-                                onChange={e => setSelectedSupplierId(Number(e.target.value))}
+                                value={form.providerId || ""}
+                                onChange={e => setForm({ ...form, providerId: Number(e.target.value) })}
                                 className="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                             >
                                 <option value="">Selecciona un proveedor</option>
@@ -259,12 +239,12 @@ export default function AdminUsers() {
                     onClick={handleAddOrUpdateUser}
                     disabled={editingId !== null && !hasChanges}
                     className={`
-                        flex items-center gap-2 px-5 py-2 rounded-lg
-                        text-white font-semibold shadow-md
-                        transition-all duration-200
-                        ${editingId !== null ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-500 hover:bg-green-600'}
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                    `}
+            flex items-center gap-2 px-5 py-2 rounded-lg
+            text-white font-semibold shadow-md
+            transition-all duration-200
+            ${editingId !== null ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-500 hover:bg-green-600'}
+            disabled:opacity-50 disabled:cursor-not-allowed
+          `}
                 >
                     {editingId !== null ? <FaSave /> : <FaPlus />}
                     {editingId !== null ? "Actualizar" : "Agregar"}

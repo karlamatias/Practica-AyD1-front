@@ -18,7 +18,7 @@ export default function Sidebar({ role }: SidebarProps) {
         Admin: [
             { name: "Vehículos", path: "/dashboard/admin/vehicles", icon: <HiTruck /> },
             { name: "Usuarios", path: "/dashboard/admin/users", icon: <HiUsers /> },
-            { name: "Especialistas", path: "/dashboard/admin/specialist", icon: <FaUserCog /> },
+            { name: "Especialidades", path: "/dashboard/admin/specialist", icon: <FaUserCog /> },
             { name: "Proveedores", path: "/dashboard/admin/providers", icon: <PiPackageFill /> },
             { name: "Cotizaciones", path: "/dashboard/admin/quotation", icon: <FaFileInvoice /> },
             { name: "Ordenes", path: "/dashboard/admin/orders", icon: <FiList /> },
@@ -27,20 +27,26 @@ export default function Sidebar({ role }: SidebarProps) {
             { name: "Pagos", path: "/dashboard/admin/payments", icon: <HiCube /> },
             { name: "Trabajos", path: "/dashboard/admin/works", icon: <HiWrench /> },
             { name: "Reportes", path: "/dashboard/admin/reports", icon: <HiChartBar /> },
+            { name: "Perfil", path: "/dashboard/admin/profile", icon: <FaUserCog /> },
+
         ],
         Empleado: [
             { name: "Dashboard", path: "/dashboard/employee", icon: <HiHome /> },
+            { name: "Perfil", path: "/dashboard/employee/profile", icon: <FaUserCog /> },
         ],
         Especialista: [
             { name: "Dashboard", path: "/dashboard/specialist", icon: <HiHome /> },
             { name: "Trabajos", path: "/dashboard/specialist/works", icon: <HiWrench /> },
+             { name: "Perfil", path: "/dashboard/specialist/profile", icon: <FaUserCog /> },
         ],
         Cliente: [
             { name: "Dashboard", path: "/dashboard/customer", icon: <HiHome /> },
+             { name: "Perfil", path: "/dashboard/customer/profile", icon: <FaUserCog /> },
         ],
         Proveedor: [
             { name: "Cotizaciones", path: "/dashboard/supplier/quotation", icon: <FaFileInvoice /> },
             { name: "Ordenes", path: "/dashboard/supplier/orders", icon: <FiList /> },
+             { name: "Perfil", path: "/dashboard/provider/profile", icon: <FaUserCog /> },
         ],
     };
 

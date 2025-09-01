@@ -15,8 +15,29 @@ export const authService = {
     if (!res.ok) {
       throw new Error("Usuario o contraseña incorrectos");
     }
+
     const data = await res.json();
-    return data;
+
+    // Si el usuario NO usa 2FA, se recibe token en el header
+    if (!data.use2fa) {
+      const authHeader = res.headers.get("Authorization");
+      if (!authHeader) throw new Error("No se recibió token del backend");
+
+      const token = authHeader.replace("Bearer ", "");
+      localStorage.setItem("token", token);
+
+      return {
+        use2fa: false,
+        user: data.user,
+        token,
+      };
+    }
+
+    // Caso cuando requiere 2FA
+    return {
+      use2fa: true,
+      user: null,
+    };
   },
 
   // Paso 2: verificar código 2FA y guardar token

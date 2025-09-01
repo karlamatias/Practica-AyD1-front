@@ -27,5 +27,11 @@ export const jobsService = {
             method: "PUT",
             body: JSON.stringify({ status }),
         }),
-    
+
+    registerProgress: (data: { maintenanceJobId: number; notes: string; hoursWorked: number }) =>
+        apiClient("/job-progress", {
+            method: "POST",
+            body: JSON.stringify(data),
+        }),
+
 }
